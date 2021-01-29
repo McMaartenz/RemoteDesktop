@@ -13,6 +13,7 @@ namespace RemoteDesktop
 		/// </summary>
 		static void Main()
 		{
+			Console.WriteLine("Hello, world!");
 			StartWindow.Start();
 		}
 	}
