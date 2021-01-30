@@ -73,9 +73,9 @@ namespace RemoteDesktop
 			this.label1.AutoSize = true;
 			this.label1.Location = new System.Drawing.Point(7, 34);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(58, 13);
+			this.label1.Size = new System.Drawing.Size(57, 13);
 			this.label1.TabIndex = 1;
-			this.label1.Text = "IP Address";
+			this.label1.Text = "IP address";
 			// 
 			// RemoteHost_IPInputBox
 			// 
@@ -106,7 +106,7 @@ namespace RemoteDesktop
 			this.groupBox2.Controls.Add(this.CreateHost_PortInputBox);
 			this.groupBox2.Controls.Add(this.label3);
 			this.groupBox2.Controls.Add(this.CreateHost_Start);
-			this.groupBox2.Location = new System.Drawing.Point(285, 13);
+			this.groupBox2.Location = new System.Drawing.Point(268, 13);
 			this.groupBox2.Name = "groupBox2";
 			this.groupBox2.Size = new System.Drawing.Size(226, 164);
 			this.groupBox2.TabIndex = 5;
@@ -137,6 +137,7 @@ namespace RemoteDesktop
 			this.CreateHost_Start.TabIndex = 0;
 			this.CreateHost_Start.Text = "Start";
 			this.CreateHost_Start.UseVisualStyleBackColor = true;
+			this.CreateHost_Start.Click += new System.EventHandler(this.CreateHost_Start_Click);
 			// 
 			// CreateHost_AllowOutsideConnections
 			// 
@@ -152,7 +153,7 @@ namespace RemoteDesktop
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(527, 192);
+			this.ClientSize = new System.Drawing.Size(510, 192);
 			this.Controls.Add(this.groupBox2);
 			this.Controls.Add(this.groupBox1);
 			this.Name = "StartWindow";
