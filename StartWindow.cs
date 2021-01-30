@@ -31,7 +31,7 @@ namespace RemoteDesktop
 			if (!UInt16.TryParse(Port, out UInt16 RemoteHostPort) || RemoteHostPort < 0 || RemoteHostPort > UInt16.MaxValue)
 			{
 				Console.WriteLine("Invalid port");
-				MessageBox.Show("Please enter a valid port 0-65535.", "Valdiation error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("Please enter a valid port 0-65535.", "Validation error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return (null, null);
 			}
 			return (RemoteHostIP, RemoteHostPort);
