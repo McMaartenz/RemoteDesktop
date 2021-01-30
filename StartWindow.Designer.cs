@@ -66,6 +66,7 @@ namespace RemoteDesktop
 			this.RemoteHost_Connect.TabIndex = 0;
 			this.RemoteHost_Connect.Text = "Connect";
 			this.RemoteHost_Connect.UseVisualStyleBackColor = true;
+			this.RemoteHost_Connect.Click += new System.EventHandler(this.RemoteHost_Connect_Click);
 			// 
 			// label1
 			// 
