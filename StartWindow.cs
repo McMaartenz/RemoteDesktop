@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Windows.Forms;
 
 namespace RemoteDesktop
@@ -54,7 +56,62 @@ namespace RemoteDesktop
 			{
 				return;
 			}
-			// Server code
+
+			// Prevent clicking again
+			CreateHost_Start.Enabled = false;
+			RemoteHost_Connect.Enabled = false;
+
+			ServerCode((UInt16)port);
+
+
+			CreateHost_Start.Enabled = true;
+			RemoteHost_Connect.Enabled = true;
+		}
+
+		private void ServerCode(UInt16 port)
+		{
+			IPAddress selfIP = IPAddress.Parse("127.0.0.1");
+			IPEndPoint localEP = new IPEndPoint(selfIP, (Int32)port);
+			// Connect
+			try
+			{
+				Socket server = new Socket(selfIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				server.Bind(localEP);
+
+				server.Listen(1); // Allow 1 client.
+
+				Console.WriteLine("Waiting for a connection to take place");
+				Socket handler = server.Accept();
+
+				string data = "";
+				byte[] bytes = null;
+
+				while (data.IndexOf("EOF:;") > -1) // EOF
+				{
+					bytes = new byte[1024];
+					int bytesRec = handler.Receive(bytes);
+					data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+				}
+
+				Console.WriteLine("Text received from client: '{0}'", data);
+
+				data = "C:OK;"; // C(onnect) is OK
+				byte[] msg = Encoding.ASCII.GetBytes(data); // Send response
+				handler.Send(msg);
+				Console.WriteLine("Sent answer to client.");
+
+				#region Close socket, remove this later on. We want a continuous connection.
+				handler.Shutdown(SocketShutdown.Both);
+				handler.Close();
+				server.Close();
+				server = null;
+				#endregion
+
+			}
+			catch (Exception exc)
+			{
+				MessageBox.Show(exc.ToString(), "Unhandled exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 		}
 	}
 }
