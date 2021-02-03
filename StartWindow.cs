@@ -46,7 +46,16 @@ namespace RemoteDesktop
 			{
 				return;
 			}
-			// Client code
+
+			// Prevent clicking again
+			CreateHost_Start.Enabled = false;
+			RemoteHost_Connect.Enabled = false;
+
+			ClientCode(address);
+
+
+			CreateHost_Start.Enabled = true;
+			RemoteHost_Connect.Enabled = true;
 		}
 
 		private void CreateHost_Start_Click(object sender, EventArgs e)
@@ -86,14 +95,20 @@ namespace RemoteDesktop
 				string data = "";
 				byte[] bytes = null;
 
-				while (data.IndexOf("EOF:;") > -1) // EOF
+				while (true) // EOF
 				{
 					bytes = new byte[1024];
 					int bytesRec = handler.Receive(bytes);
 					data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+					if (data.IndexOf("EOF:;") > -1)
+					{
+						break;
+					}
 				}
 
-				Console.WriteLine("Text received from client: '{0}'", data);
+				Console.WriteLine();
+				MessageBox.Show("Text received from client: '" + data + '\'', "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
 
 				data = "C:OK;"; // C(onnect) is OK
 				byte[] msg = Encoding.ASCII.GetBytes(data); // Send response
@@ -107,6 +122,33 @@ namespace RemoteDesktop
 				server = null;
 				#endregion
 
+			}
+			catch (Exception exc)
+			{
+				MessageBox.Show(exc.ToString(), "Unhandled exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private void ClientCode((IPAddress IP, UInt16? Port) address)
+		{
+			byte[] bytes = new byte[1024];
+
+			try
+			{
+				IPEndPoint remoteEP = new IPEndPoint(address.IP, (Int32)address.Port);
+				Socket client = new Socket(address.IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				client.Connect(remoteEP);
+				Console.WriteLine("Connected to remote server");
+
+				byte[] msg = Encoding.ASCII.GetBytes("Hello World!EOF:;"); // TODO sends code, should include metadata e.g. screen resolution
+				int bytesSent = client.Send(msg);
+
+				int bytesRec = client.Receive(bytes);
+				MessageBox.Show("Received from remote server: " + Encoding.ASCII.GetString(bytes, 0, bytesRec), "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+				client.Shutdown(SocketShutdown.Both);
+				client.Close();
+				client = null;
 			}
 			catch (Exception exc)
 			{
