@@ -81,7 +81,7 @@ namespace RemoteDesktop
 		{
 			UInt16 port = (UInt16)obj;
 			IPAddress selfIP = IPAddress.Parse("127.0.0.1");
-			IPEndPoint localEP = new IPEndPoint(selfIP, (Int32)port);
+			IPEndPoint localEP = new IPEndPoint(selfIP, port);
 			// Connect
 			try
 			{
@@ -99,7 +99,7 @@ namespace RemoteDesktop
 
 				while (true)
 				{
-					bytes = new byte[1024];
+					bytes = new byte[4096];
 					int bytesRec = handler.Receive(bytes);
 					data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 					if (data.IndexOf("<EOF>") > -1)
@@ -142,7 +142,7 @@ namespace RemoteDesktop
 		private void ClientCode(object obj)
 		{
 			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
-			byte[] bytes = new byte[1024];
+			byte[] bytes = new byte[4096];
 
 			try
 			{
