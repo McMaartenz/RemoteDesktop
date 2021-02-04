@@ -20,6 +20,11 @@ namespace RemoteDesktop
 		{
 			InitializeComponent();
 		}
+		
+		private void ExceptionMsg(Exception e)
+		{
+			MessageBox.Show(e.ToString(), "Unhandled exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		}
 
 		private (IPAddress, UInt16?) ValidateIPAndPort(string IP, string Port)
 		{
@@ -125,7 +130,7 @@ namespace RemoteDesktop
 			}
 			catch (Exception exc)
 			{
-				MessageBox.Show(exc.ToString(), "Unhandled exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				ExceptionMsg(exc);
 			}
 		}
 
@@ -152,7 +157,7 @@ namespace RemoteDesktop
 			}
 			catch (Exception exc)
 			{
-				MessageBox.Show(exc.ToString(), "Unhandled exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				ExceptionMsg(exc);
 			}
 		}
 	}
