@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace RemoteDesktop
@@ -13,7 +14,7 @@ namespace RemoteDesktop
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new StartWindow());
+			Application.Run(Program.form = new StartWindow());
 		}
 
 		public StartWindow()
@@ -56,11 +57,8 @@ namespace RemoteDesktop
 			CreateHost_Start.Enabled = false;
 			RemoteHost_Connect.Enabled = false;
 
-			ClientCode(address);
-
-
-			CreateHost_Start.Enabled = true;
-			RemoteHost_Connect.Enabled = true;
+			Thread clientThread = new Thread(new ParameterizedThreadStart(ClientCode));
+			clientThread.Start(address);
 		}
 
 		private void CreateHost_Start_Click(object sender, EventArgs e)
@@ -75,15 +73,13 @@ namespace RemoteDesktop
 			CreateHost_Start.Enabled = false;
 			RemoteHost_Connect.Enabled = false;
 
-			ServerCode((UInt16)port);
-
-
-			CreateHost_Start.Enabled = true;
-			RemoteHost_Connect.Enabled = true;
+			Thread serverThread = new Thread(new ParameterizedThreadStart(ServerCode));
+			serverThread.Start(port);
 		}
 
-		private void ServerCode(UInt16 port)
+		private void ServerCode(object obj)
 		{
+			UInt16 port = (UInt16)obj;
 			IPAddress selfIP = IPAddress.Parse("127.0.0.1");
 			IPEndPoint localEP = new IPEndPoint(selfIP, (Int32)port);
 			// Connect
@@ -96,16 +92,17 @@ namespace RemoteDesktop
 
 				Console.WriteLine("Waiting for a connection to take place");
 				Socket handler = server.Accept();
+				Console.WriteLine("Connected to a client");
 
 				string data = "";
 				byte[] bytes = null;
 
-				while (true) // EOF
+				while (true)
 				{
 					bytes = new byte[1024];
 					int bytesRec = handler.Receive(bytes);
 					data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-					if (data.IndexOf("EOF:;") > -1)
+					if (data.IndexOf("<EOF>") > -1)
 					{
 						break;
 					}
@@ -115,7 +112,7 @@ namespace RemoteDesktop
 				MessageBox.Show("Text received from client: '" + data + '\'', "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
 
-				data = "C:OK;"; // C(onnect) is OK
+				data = "200"; // HTTP Status code for OK
 				byte[] msg = Encoding.ASCII.GetBytes(data); // Send response
 				handler.Send(msg);
 				Console.WriteLine("Sent answer to client.");
@@ -132,10 +129,19 @@ namespace RemoteDesktop
 			{
 				ExceptionMsg(exc);
 			}
+			finally
+			{
+				BeginInvoke(new Action(() =>
+				{
+					CreateHost_Start.Enabled = true;
+					RemoteHost_Connect.Enabled = true;
+				}));
+			}
 		}
 
-		private void ClientCode((IPAddress IP, UInt16? Port) address)
+		private void ClientCode(object obj)
 		{
+			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
 			byte[] bytes = new byte[1024];
 
 			try
@@ -145,7 +151,7 @@ namespace RemoteDesktop
 				client.Connect(remoteEP);
 				Console.WriteLine("Connected to remote server");
 
-				byte[] msg = Encoding.ASCII.GetBytes("Hello World!EOF:;"); // TODO sends code, should include metadata e.g. screen resolution
+				byte[] msg = Encoding.ASCII.GetBytes("Hello World!<EOF>"); // TODO sends code, should include metadata e.g. screen resolution
 				int bytesSent = client.Send(msg);
 
 				int bytesRec = client.Receive(bytes);
@@ -158,6 +164,14 @@ namespace RemoteDesktop
 			catch (Exception exc)
 			{
 				ExceptionMsg(exc);
+			}
+			finally
+			{
+				BeginInvoke(new Action(() =>
+				{
+					CreateHost_Start.Enabled = true;
+					RemoteHost_Connect.Enabled = true;
+				}));
 			}
 		}
 	}
