@@ -10,14 +10,14 @@ namespace RemoteDesktop
 	public partial class StartWindow : Form
 	{
 		[STAThread]
-		public static void Start()
+		internal static void Start()
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(Program.form = new StartWindow());
 		}
 
-		public StartWindow()
+		internal StartWindow()
 		{
 			InitializeComponent();
 		}
@@ -87,6 +87,8 @@ namespace RemoteDesktop
 			// Connect
 			try
 			{
+
+				// TODO do rewrite
 				Socket server = new Socket(selfIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 				server.Bind(localEP);
 
@@ -111,7 +113,7 @@ namespace RemoteDesktop
 				}
 
 				Console.WriteLine();
-				MessageBox.Show("Text received from client: '" + data + '\'', "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				Program.sw.LogMessage("Text received from client: '" + data + '\'');
 
 
 				data = "200"; // HTTP Status code for OK
@@ -119,12 +121,10 @@ namespace RemoteDesktop
 				handler.Send(msg);
 				Program.sw.LogMessage("Sent answer to client.");
 
-				#region Close socket, remove this later on. We want a continuous connection.
 				handler.Shutdown(SocketShutdown.Both);
 				handler.Close();
 				server.Close();
 				server = null;
-				#endregion
 
 			}
 			catch (Exception exc)
@@ -133,6 +133,7 @@ namespace RemoteDesktop
 			}
 			finally
 			{
+				MessageBox.Show("The remote host session ended.", "Session ended", MessageBoxButtons.OK, MessageBoxIcon.Information);
 				BeginInvoke(new Action(() => // Send to GUI thread
 				{
 					CreateHost_Start.Enabled = true;
@@ -140,7 +141,6 @@ namespace RemoteDesktop
 					Visible = true;
 					Program.sw.Hide();
 				}));
-				MessageBox.Show("The remote host session ended.", "Session ended", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 		}
 

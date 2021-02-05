@@ -4,9 +4,11 @@ using System.Windows.Forms;
 
 namespace RemoteDesktop
 {
-	public partial class ServerWindow : Form
+	internal partial class ServerWindow : Form
 	{
-		public ServerWindow()
+		internal bool stopSharing = false;
+
+		internal ServerWindow()
 		{
 			InitializeComponent();
 		}
@@ -21,7 +23,7 @@ namespace RemoteDesktop
 
 		private void ServerWindow_StopSharing_Click(object sender, EventArgs e)
 		{
-			throw new NotImplementedException();
+			stopSharing = true;
 		}
 	}
 }
