@@ -72,6 +72,8 @@ namespace RemoteDesktop
 			// Prevent clicking again
 			CreateHost_Start.Enabled = false;
 			RemoteHost_Connect.Enabled = false;
+			Visible = false;
+			(Program.sw = new ServerWindow()).Show();
 
 			Thread serverThread = new Thread(new ParameterizedThreadStart(ServerCode));
 			serverThread.Start(port);
@@ -90,16 +92,16 @@ namespace RemoteDesktop
 
 				server.Listen(1); // Allow 1 client.
 
-				Console.WriteLine("Waiting for a connection to take place");
+				Program.sw.LogMessage("Waiting for a connection to take place");
 				Socket handler = server.Accept();
-				Console.WriteLine("Connected to a client");
+				Program.sw.LogMessage("Connected to a client");
 
 				string data = "";
 				byte[] bytes = null;
 
 				while (true)
 				{
-					bytes = new byte[4096];
+					bytes = new byte[1024];
 					int bytesRec = handler.Receive(bytes);
 					data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 					if (data.IndexOf("<EOF>") > -1)
@@ -115,7 +117,7 @@ namespace RemoteDesktop
 				data = "200"; // HTTP Status code for OK
 				byte[] msg = Encoding.ASCII.GetBytes(data); // Send response
 				handler.Send(msg);
-				Console.WriteLine("Sent answer to client.");
+				Program.sw.LogMessage("Sent answer to client.");
 
 				#region Close socket, remove this later on. We want a continuous connection.
 				handler.Shutdown(SocketShutdown.Both);
@@ -131,18 +133,21 @@ namespace RemoteDesktop
 			}
 			finally
 			{
-				BeginInvoke(new Action(() =>
+				BeginInvoke(new Action(() => // Send to GUI thread
 				{
 					CreateHost_Start.Enabled = true;
 					RemoteHost_Connect.Enabled = true;
+					Visible = true;
+					Program.sw.Hide();
 				}));
+				MessageBox.Show("The remote host session ended.", "Session ended", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 		}
 
 		private void ClientCode(object obj)
 		{
 			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
-			byte[] bytes = new byte[4096];
+			byte[] bytes = new byte[1024];
 
 			try
 			{
@@ -167,10 +172,11 @@ namespace RemoteDesktop
 			}
 			finally
 			{
-				BeginInvoke(new Action(() =>
+				BeginInvoke(new Action(() => // Send to GUI thread
 				{
 					CreateHost_Start.Enabled = true;
 					RemoteHost_Connect.Enabled = true;
+					Visible = true;
 				}));
 			}
 		}
