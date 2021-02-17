@@ -98,29 +98,35 @@ namespace RemoteDesktop
 				Socket handler = server.Accept();
 				Program.sw.LogMessage("Connected to a client");
 
-				string data = "";
-				byte[] bytes = null;
-
-				while (true)
+				bool shouldStayConnected = true;
+				// temporary
+				while (!Program.sw.stopSharing)
 				{
-					bytes = new byte[1024];
-					int bytesRec = handler.Receive(bytes);
-					data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-					if (data.IndexOf("<EOF>") > -1)
+					string data = "";
+					byte[] bytes = null;
+
+					do
 					{
-						break;
+						bytes = new byte[1024];
+						int bytesRec = handler.Receive(bytes);
+						data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 					}
+					while (data.IndexOf("<EOF>") == -1);
+
+					Console.WriteLine();
+					Program.sw.LogMessage("Text received from client: '" + data + '\'');
+
+
+					// 200 is HTTP Status code for OK
+					byte[] msg = Encoding.ASCII.GetBytes("200"); // Send response
+					handler.Send(msg);
+					Program.sw.LogMessage("Sent answer to client.");
+					Thread.Sleep(500);
+					shouldStayConnected = !Program.sw.stopSharing; // TODO check data and handle it
 				}
 
-				Console.WriteLine();
-				Program.sw.LogMessage("Text received from client: '" + data + '\'');
-
-
-				data = "200"; // HTTP Status code for OK
-				byte[] msg = Encoding.ASCII.GetBytes(data); // Send response
-				handler.Send(msg);
-				Program.sw.LogMessage("Sent answer to client.");
-
+				handler.Send(Encoding.ASCII.GetBytes("CLOSE"));
+				Thread.Sleep(100);
 				handler.Shutdown(SocketShutdown.Both);
 				handler.Close();
 				server.Close();
@@ -156,11 +162,25 @@ namespace RemoteDesktop
 				client.Connect(remoteEP);
 				Console.WriteLine("Connected to remote server");
 
-				byte[] msg = Encoding.ASCII.GetBytes("Hello World!<EOF>"); // TODO sends code, should include metadata e.g. screen resolution
-				int bytesSent = client.Send(msg);
+				string received;
+				int bytesSent, bytesRec;
+				byte[] msg;
 
-				int bytesRec = client.Receive(bytes);
-				MessageBox.Show("Received from remote server: " + Encoding.ASCII.GetString(bytes, 0, bytesRec), "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				while (client.Connected)
+				{
+					msg = Encoding.ASCII.GetBytes("Hello World!<EOF>"); // TODO sends code, should include metadata e.g. screen resolution
+					bytesSent = client.Send(msg);
+					
+					bytesRec = client.Receive(bytes);
+					received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+					
+					Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					if (received == "CLOSE")
+					{
+						MessageBox.Show("Connection closed by host.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						break;
+					}
+				}
 
 				client.Shutdown(SocketShutdown.Both);
 				client.Close();
