@@ -30,16 +30,16 @@ namespace RemoteDesktop
 		private void InitializeComponent()
 		{
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
-			this.RemoteHost_Connect = new System.Windows.Forms.Button();
-			this.label1 = new System.Windows.Forms.Label();
-			this.RemoteHost_IPInputBox = new System.Windows.Forms.TextBox();
-			this.label2 = new System.Windows.Forms.Label();
 			this.RemoteHost_PortInputBox = new System.Windows.Forms.TextBox();
+			this.label2 = new System.Windows.Forms.Label();
+			this.RemoteHost_IPInputBox = new System.Windows.Forms.TextBox();
+			this.label1 = new System.Windows.Forms.Label();
+			this.RemoteHost_Connect = new System.Windows.Forms.Button();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
+			this.CreateHost_AllowOutsideConnections = new System.Windows.Forms.CheckBox();
 			this.CreateHost_PortInputBox = new System.Windows.Forms.TextBox();
 			this.label3 = new System.Windows.Forms.Label();
 			this.CreateHost_Start = new System.Windows.Forms.Button();
-			this.CreateHost_AllowOutsideConnections = new System.Windows.Forms.CheckBox();
 			this.groupBox1.SuspendLayout();
 			this.groupBox2.SuspendLayout();
 			this.SuspendLayout();
@@ -58,31 +58,12 @@ namespace RemoteDesktop
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Connect to a remote host";
 			// 
-			// RemoteHost_Connect
+			// RemoteHost_PortInputBox
 			// 
-			this.RemoteHost_Connect.Location = new System.Drawing.Point(6, 135);
-			this.RemoteHost_Connect.Name = "RemoteHost_Connect";
-			this.RemoteHost_Connect.Size = new System.Drawing.Size(75, 23);
-			this.RemoteHost_Connect.TabIndex = 0;
-			this.RemoteHost_Connect.Text = "Connect";
-			this.RemoteHost_Connect.UseVisualStyleBackColor = true;
-			this.RemoteHost_Connect.Click += new System.EventHandler(this.RemoteHost_Connect_Click);
-			// 
-			// label1
-			// 
-			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(7, 34);
-			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(57, 13);
-			this.label1.TabIndex = 1;
-			this.label1.Text = "IP address";
-			// 
-			// RemoteHost_IPInputBox
-			// 
-			this.RemoteHost_IPInputBox.Location = new System.Drawing.Point(96, 31);
-			this.RemoteHost_IPInputBox.Name = "RemoteHost_IPInputBox";
-			this.RemoteHost_IPInputBox.Size = new System.Drawing.Size(147, 20);
-			this.RemoteHost_IPInputBox.TabIndex = 2;
+			this.RemoteHost_PortInputBox.Location = new System.Drawing.Point(96, 57);
+			this.RemoteHost_PortInputBox.Name = "RemoteHost_PortInputBox";
+			this.RemoteHost_PortInputBox.Size = new System.Drawing.Size(147, 20);
+			this.RemoteHost_PortInputBox.TabIndex = 4;
 			// 
 			// label2
 			// 
@@ -93,12 +74,31 @@ namespace RemoteDesktop
 			this.label2.TabIndex = 3;
 			this.label2.Text = "Port";
 			// 
-			// RemoteHost_PortInputBox
+			// RemoteHost_IPInputBox
 			// 
-			this.RemoteHost_PortInputBox.Location = new System.Drawing.Point(96, 57);
-			this.RemoteHost_PortInputBox.Name = "RemoteHost_PortInputBox";
-			this.RemoteHost_PortInputBox.Size = new System.Drawing.Size(147, 20);
-			this.RemoteHost_PortInputBox.TabIndex = 4;
+			this.RemoteHost_IPInputBox.Location = new System.Drawing.Point(96, 31);
+			this.RemoteHost_IPInputBox.Name = "RemoteHost_IPInputBox";
+			this.RemoteHost_IPInputBox.Size = new System.Drawing.Size(147, 20);
+			this.RemoteHost_IPInputBox.TabIndex = 2;
+			// 
+			// label1
+			// 
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(7, 34);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(57, 13);
+			this.label1.TabIndex = 1;
+			this.label1.Text = "IP address";
+			// 
+			// RemoteHost_Connect
+			// 
+			this.RemoteHost_Connect.Location = new System.Drawing.Point(6, 135);
+			this.RemoteHost_Connect.Name = "RemoteHost_Connect";
+			this.RemoteHost_Connect.Size = new System.Drawing.Size(75, 23);
+			this.RemoteHost_Connect.TabIndex = 0;
+			this.RemoteHost_Connect.Text = "Connect";
+			this.RemoteHost_Connect.UseVisualStyleBackColor = true;
+			this.RemoteHost_Connect.Click += new System.EventHandler(this.RemoteHost_Connect_Click);
 			// 
 			// groupBox2
 			// 
@@ -112,6 +112,16 @@ namespace RemoteDesktop
 			this.groupBox2.TabIndex = 5;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Create a host";
+			// 
+			// CreateHost_AllowOutsideConnections
+			// 
+			this.CreateHost_AllowOutsideConnections.AutoSize = true;
+			this.CreateHost_AllowOutsideConnections.Location = new System.Drawing.Point(6, 112);
+			this.CreateHost_AllowOutsideConnections.Name = "CreateHost_AllowOutsideConnections";
+			this.CreateHost_AllowOutsideConnections.Size = new System.Drawing.Size(215, 17);
+			this.CreateHost_AllowOutsideConnections.TabIndex = 5;
+			this.CreateHost_AllowOutsideConnections.Text = "Allow connections outside local network";
+			this.CreateHost_AllowOutsideConnections.UseVisualStyleBackColor = true;
 			// 
 			// CreateHost_PortInputBox
 			// 
@@ -139,16 +149,6 @@ namespace RemoteDesktop
 			this.CreateHost_Start.UseVisualStyleBackColor = true;
 			this.CreateHost_Start.Click += new System.EventHandler(this.CreateHost_Start_Click);
 			// 
-			// CreateHost_AllowOutsideConnections
-			// 
-			this.CreateHost_AllowOutsideConnections.AutoSize = true;
-			this.CreateHost_AllowOutsideConnections.Location = new System.Drawing.Point(6, 112);
-			this.CreateHost_AllowOutsideConnections.Name = "CreateHost_AllowOutsideConnections";
-			this.CreateHost_AllowOutsideConnections.Size = new System.Drawing.Size(215, 17);
-			this.CreateHost_AllowOutsideConnections.TabIndex = 5;
-			this.CreateHost_AllowOutsideConnections.Text = "Allow connections outside local network";
-			this.CreateHost_AllowOutsideConnections.UseVisualStyleBackColor = true;
-			// 
 			// StartWindow
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -156,6 +156,8 @@ namespace RemoteDesktop
 			this.ClientSize = new System.Drawing.Size(510, 192);
 			this.Controls.Add(this.groupBox2);
 			this.Controls.Add(this.groupBox1);
+			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+			this.MaximizeBox = false;
 			this.Name = "StartWindow";
 			this.Text = "Remote Desktop";
 			this.groupBox1.ResumeLayout(false);
