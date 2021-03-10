@@ -102,7 +102,6 @@ namespace RemoteDesktop
 				Socket handler = server.Accept();
 				Program.sw.LogMessage("Connected to a client");
 
-				bool shouldStayConnected = true;
 				// temporary
 				while (!Program.sw.stopSharing)
 				{
@@ -117,16 +116,23 @@ namespace RemoteDesktop
 					}
 					while (data.IndexOf("<EOF>") == -1);
 
+					// Remove <EOF>
+					data = data.Substring(0, data.Length - 5);
+
+
 					Console.WriteLine();
 					Program.sw.LogMessage("Text received from client: '" + data + '\'');
 
+					if (data == "CLOSE")
+					{
+						Program.sw.stopSharing = true;
+					}
 
 					// 200 is HTTP Status code for OK
 					byte[] msg = Encoding.ASCII.GetBytes("200"); // Send response
 					handler.Send(msg);
 					Program.sw.LogMessage("Sent answer to client.");
 					Thread.Sleep(500);
-					shouldStayConnected = !Program.sw.stopSharing; // TODO check data and handle it
 				}
 
 				handler.Send(Encoding.ASCII.GetBytes("CLOSE"));
@@ -169,17 +175,33 @@ namespace RemoteDesktop
 				string received;
 				int bytesSent, bytesRec;
 				byte[] msg;
+				string sendData;
 
 				while (client.Connected)
 				{
-					msg = Encoding.ASCII.GetBytes("Hello World!<EOF>"); // TODO sends code, should include metadata e.g. screen resolution
+
+					if (Program.cw.stopSharing)
+					{
+						sendData = "CLOSE<EOF>";
+					}
+					else
+					{
+						sendData = "Hello World!<EOF>";
+					}
+					msg = Encoding.ASCII.GetBytes(sendData); // TODO sends code, should include metadata e.g. screen resolution
 					bytesSent = client.Send(msg);
 					
 					bytesRec = client.Receive(bytes);
 					received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
 					
 					Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
-					if (received == "CLOSE")
+					
+					if (Program.cw.stopSharing)
+					{
+						MessageBox.Show("Connection closed.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						break;
+					}
+					else if (received == "CLOSE")
 					{
 						MessageBox.Show("Connection closed by host.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
 						break;
