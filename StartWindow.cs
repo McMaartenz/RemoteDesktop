@@ -20,6 +20,8 @@ namespace RemoteDesktop
 		internal StartWindow()
 		{
 			InitializeComponent();
+			(Program.sw = new ServerWindow()).Hide();
+			(Program.cw = new ClientWindow()).Hide();
 		}
 		
 		private void ExceptionMsg(Exception e)
@@ -56,6 +58,8 @@ namespace RemoteDesktop
 			// Prevent clicking again
 			CreateHost_Start.Enabled = false;
 			RemoteHost_Connect.Enabled = false;
+			Visible = false;
+			Program.cw.Show();
 
 			Thread clientThread = new Thread(new ParameterizedThreadStart(ClientCode));
 			clientThread.Start(address);
@@ -73,7 +77,7 @@ namespace RemoteDesktop
 			CreateHost_Start.Enabled = false;
 			RemoteHost_Connect.Enabled = false;
 			Visible = false;
-			(Program.sw = new ServerWindow()).Show();
+			Program.sw.Show();
 
 			Thread serverThread = new Thread(new ParameterizedThreadStart(ServerCode));
 			serverThread.Start(port);
@@ -197,6 +201,7 @@ namespace RemoteDesktop
 					CreateHost_Start.Enabled = true;
 					RemoteHost_Connect.Enabled = true;
 					Visible = true;
+					Program.cw.Hide();
 				}));
 			}
 		}
