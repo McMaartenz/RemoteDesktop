@@ -52,6 +52,9 @@
     <Compile Include="ClientWindow.Designer.cs">
       <DependentUpon>ClientWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="IOHandler.cs" />
+    <Compile Include="IOH_Instruction.cs" />
+    <Compile Include="IOH_Section.cs" />
     <Compile Include="ServerWindow.cs">
       <SubType>Form</SubType>
     </Compile>

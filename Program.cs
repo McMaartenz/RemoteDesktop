@@ -1,4 +1,6 @@
-﻿namespace RemoteDesktop
+﻿using System.Threading;
+
+namespace RemoteDesktop
 {
 	static class Program
 	{
@@ -8,7 +10,9 @@
 
 		static void Main()
 		{
-			StartWindow.Start();
+			IOHandler IOH = new IOHandler();
+			IOH.HandleEvent("INPTEVname=mouse,x=250,y=250,button=left");
+			//StartWindow.Start();
 		}
 	}
 }

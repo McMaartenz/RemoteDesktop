@@ -88,6 +88,8 @@ namespace RemoteDesktop
 			UInt16 port = (UInt16)obj;
 			IPAddress selfIP = IPAddress.Parse("127.0.0.1");
 			IPEndPoint localEP = new IPEndPoint(selfIP, port);
+			IOHandler IOH = new IOHandler();
+
 			// Connect
 			try
 			{
@@ -123,9 +125,13 @@ namespace RemoteDesktop
 					Console.WriteLine();
 					Program.sw.LogMessage("Text received from client: '" + data + '\'');
 
-					if (data == "CLOSE")
+					if (data.Substring(0, 6) == "CLOSE")
 					{
 						Program.sw.stopSharing = true;
+					}
+					else
+					{
+						IOH.HandleEvent(data);
 					}
 
 					// 200 is HTTP Status code for OK
