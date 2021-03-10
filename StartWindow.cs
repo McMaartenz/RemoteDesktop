@@ -10,16 +10,18 @@ namespace RemoteDesktop
 	public partial class StartWindow : Form
 	{
 		[STAThread]
-		public static void Start()
+		internal static void Start()
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(Program.form = new StartWindow());
 		}
 
-		public StartWindow()
+		internal StartWindow()
 		{
 			InitializeComponent();
+			(Program.sw = new ServerWindow()).Hide();
+			(Program.cw = new ClientWindow()).Hide();
 		}
 		
 		private void ExceptionMsg(Exception e)
@@ -56,6 +58,8 @@ namespace RemoteDesktop
 			// Prevent clicking again
 			CreateHost_Start.Enabled = false;
 			RemoteHost_Connect.Enabled = false;
+			Visible = false;
+			Program.cw.Show();
 
 			Thread clientThread = new Thread(new ParameterizedThreadStart(ClientCode));
 			clientThread.Start(address);
@@ -72,6 +76,8 @@ namespace RemoteDesktop
 			// Prevent clicking again
 			CreateHost_Start.Enabled = false;
 			RemoteHost_Connect.Enabled = false;
+			Visible = false;
+			Program.sw.Show();
 
 			Thread serverThread = new Thread(new ParameterizedThreadStart(ServerCode));
 			serverThread.Start(port);
@@ -85,44 +91,56 @@ namespace RemoteDesktop
 			// Connect
 			try
 			{
+
+				// TODO do rewrite
 				Socket server = new Socket(selfIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 				server.Bind(localEP);
 
 				server.Listen(1); // Allow 1 client.
 
-				Console.WriteLine("Waiting for a connection to take place");
+				Program.sw.LogMessage("Waiting for a connection to take place");
 				Socket handler = server.Accept();
-				Console.WriteLine("Connected to a client");
+				Program.sw.LogMessage("Connected to a client");
 
-				string data = "";
-				byte[] bytes = null;
-
-				while (true)
+				// temporary
+				while (!Program.sw.stopSharing)
 				{
-					bytes = new byte[4096];
-					int bytesRec = handler.Receive(bytes);
-					data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-					if (data.IndexOf("<EOF>") > -1)
+					string data = "";
+					byte[] bytes = null;
+
+					do
 					{
-						break;
+						bytes = new byte[1024];
+						int bytesRec = handler.Receive(bytes);
+						data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 					}
+					while (data.IndexOf("<EOF>") == -1);
+
+					// Remove <EOF>
+					data = data.Substring(0, data.Length - 5);
+
+
+					Console.WriteLine();
+					Program.sw.LogMessage("Text received from client: '" + data + '\'');
+
+					if (data == "CLOSE")
+					{
+						Program.sw.stopSharing = true;
+					}
+
+					// 200 is HTTP Status code for OK
+					byte[] msg = Encoding.ASCII.GetBytes("200"); // Send response
+					handler.Send(msg);
+					Program.sw.LogMessage("Sent answer to client.");
+					Thread.Sleep(500);
 				}
 
-				Console.WriteLine();
-				MessageBox.Show("Text received from client: '" + data + '\'', "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-
-				data = "200"; // HTTP Status code for OK
-				byte[] msg = Encoding.ASCII.GetBytes(data); // Send response
-				handler.Send(msg);
-				Console.WriteLine("Sent answer to client.");
-
-				#region Close socket, remove this later on. We want a continuous connection.
+				handler.Send(Encoding.ASCII.GetBytes("CLOSE"));
+				Thread.Sleep(100);
 				handler.Shutdown(SocketShutdown.Both);
 				handler.Close();
 				server.Close();
 				server = null;
-				#endregion
 
 			}
 			catch (Exception exc)
@@ -131,10 +149,13 @@ namespace RemoteDesktop
 			}
 			finally
 			{
-				BeginInvoke(new Action(() =>
+				MessageBox.Show("The remote host session ended.", "Session ended", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				BeginInvoke(new Action(() => // Send to GUI thread
 				{
 					CreateHost_Start.Enabled = true;
 					RemoteHost_Connect.Enabled = true;
+					Visible = true;
+					Program.sw.Hide();
 				}));
 			}
 		}
@@ -142,7 +163,7 @@ namespace RemoteDesktop
 		private void ClientCode(object obj)
 		{
 			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
-			byte[] bytes = new byte[4096];
+			byte[] bytes = new byte[1024];
 
 			try
 			{
@@ -151,11 +172,41 @@ namespace RemoteDesktop
 				client.Connect(remoteEP);
 				Console.WriteLine("Connected to remote server");
 
-				byte[] msg = Encoding.ASCII.GetBytes("Hello World!<EOF>"); // TODO sends code, should include metadata e.g. screen resolution
-				int bytesSent = client.Send(msg);
+				string received;
+				int bytesSent, bytesRec;
+				byte[] msg;
+				string sendData;
 
-				int bytesRec = client.Receive(bytes);
-				MessageBox.Show("Received from remote server: " + Encoding.ASCII.GetString(bytes, 0, bytesRec), "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				while (client.Connected)
+				{
+
+					if (Program.cw.stopSharing)
+					{
+						sendData = "CLOSE<EOF>";
+					}
+					else
+					{
+						sendData = "Hello World!<EOF>";
+					}
+					msg = Encoding.ASCII.GetBytes(sendData); // TODO sends code, should include metadata e.g. screen resolution
+					bytesSent = client.Send(msg);
+					
+					bytesRec = client.Receive(bytes);
+					received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+					
+					Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					
+					if (Program.cw.stopSharing)
+					{
+						MessageBox.Show("Connection closed.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						break;
+					}
+					else if (received == "CLOSE")
+					{
+						MessageBox.Show("Connection closed by host.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						break;
+					}
+				}
 
 				client.Shutdown(SocketShutdown.Both);
 				client.Close();
@@ -167,10 +218,12 @@ namespace RemoteDesktop
 			}
 			finally
 			{
-				BeginInvoke(new Action(() =>
+				BeginInvoke(new Action(() => // Send to GUI thread
 				{
 					CreateHost_Start.Enabled = true;
 					RemoteHost_Connect.Enabled = true;
+					Visible = true;
+					Program.cw.Hide();
 				}));
 			}
 		}
