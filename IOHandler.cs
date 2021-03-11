@@ -72,7 +72,7 @@ namespace RemoteDesktop
 			{
 				switch (instruction.name)
 				{
-					case "INPTEV":
+					case "INPTEV": // Input event
 						foreach (IOH_Section section in instruction.sections)
 						{
 							switch (section.innerArgs["name"])
@@ -95,7 +95,7 @@ namespace RemoteDesktop
 
 								case "image":
 									{
-										// Handle
+										// TODO
 									}
 									break;
 
@@ -103,6 +103,12 @@ namespace RemoteDesktop
 									Console.WriteLine("Unrecognized name " + section.innerArgs["name"]);
 									break;
 							}
+						}
+						break;
+
+					case "MSGIEV": // Message event
+						{
+							Console.WriteLine("Message from client: " + instruction.sections[0].innerArgs["data"]);
 						}
 						break;
 

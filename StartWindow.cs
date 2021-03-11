@@ -192,7 +192,27 @@ namespace RemoteDesktop
 					}
 					else
 					{
-						sendData = "Hello World!<EOF>";
+						lock (Program.cw.KeyCodes)
+						{
+							if (Program.cw.KeyCodes.Count > 0)
+							{
+								sendData = "INPTEV";
+								while (Program.cw.KeyCodes.Count > 0)
+								{
+									sendData += "name=key,keycode=" + Program.cw.KeyCodes.Dequeue().ToString("X");
+									if (Program.cw.KeyCodes.Count > 0)
+									{
+										sendData += "/";
+									}
+								}
+							}
+							else
+							{
+								sendData = "MSGIEVdata=No keys pressed";
+							}
+						}
+
+						sendData += "<EOF>"; // End of stream
 					}
 					msg = Encoding.ASCII.GetBytes(sendData); // TODO sends code, should include metadata e.g. screen resolution
 					bytesSent = client.Send(msg);
