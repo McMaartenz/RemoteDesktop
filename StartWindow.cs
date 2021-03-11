@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace RemoteDesktop
 {
@@ -85,35 +86,58 @@ namespace RemoteDesktop
 			serverThread.Start(port);
 		}
 
-		    internal static string GetLocalIPv4(NetworkInterfaceType _type)
+		public string GetLocalIpAddress()
+		{
+			UnicastIPAddressInformation mostSuitableIp = null;
+
+			var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+			foreach (var network in networkInterfaces)
 			{
-				string output = "";
-				foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces())
+				if (network.OperationalStatus != OperationalStatus.Up)
+					continue;
+
+				var properties = network.GetIPProperties();
+
+				if (properties.GatewayAddresses.Count == 0)
+					continue;
+
+				foreach (var address in properties.UnicastAddresses)
 				{
-					if (item.NetworkInterfaceType == _type && item.OperationalStatus == OperationalStatus.Up)
+					if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+						continue;
+
+					if (IPAddress.IsLoopback(address.Address))
+						continue;
+
+					if (!address.IsDnsEligible)
 					{
-						IPInterfaceProperties adapterProperties = item.GetIPProperties();
-						if (adapterProperties.GatewayAddresses.FirstOrDefault() != null)
-						{
-							foreach (UnicastIPAddressInformation ip in adapterProperties.UnicastAddresses)
-							{
-								if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
-								{
-									output = ip.Address.ToString();
-									break;
-								}
-							}
-						}
+						if (mostSuitableIp == null)
+							mostSuitableIp = address;
+						continue;
 					}
-					if (output != "") { break; }
+
+					// The best IP is the IP got from DHCP server
+					if (address.PrefixOrigin != PrefixOrigin.Dhcp)
+					{
+						if (mostSuitableIp == null || !mostSuitableIp.IsDnsEligible)
+							mostSuitableIp = address;
+						continue;
+					}
+
+					return address.Address.ToString();
 				}
-				return output;
 			}
+
+			return mostSuitableIp != null
+				? mostSuitableIp.Address.ToString()
+				: "";
+		}
 
 		private void ServerCode(object obj)
 		{
 			UInt16 port = (UInt16)obj;
-			IPAddress selfIP = IPAddress.Parse(GetLocalIPv4(NetworkInterfaceType.Ethernet));
+			IPAddress selfIP = IPAddress.Parse(GetLocalIpAddress());//GetLocalIPv4(NetworkInterfaceType.Ethernet));
 			IPEndPoint localEP = new IPEndPoint(selfIP, port);
 			IOHandler IOH = new IOHandler();
 
