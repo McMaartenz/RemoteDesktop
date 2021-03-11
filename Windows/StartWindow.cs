@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace RemoteDesktop
 {
@@ -83,11 +86,61 @@ namespace RemoteDesktop
 			serverThread.Start(port);
 		}
 
+		public string GetLocalIpAddress()
+		{
+			UnicastIPAddressInformation mostSuitableIp = null;
+
+			var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+			foreach (var network in networkInterfaces)
+			{
+				if (network.OperationalStatus != OperationalStatus.Up)
+					continue;
+
+				var properties = network.GetIPProperties();
+
+				if (properties.GatewayAddresses.Count == 0)
+					continue;
+
+				foreach (var address in properties.UnicastAddresses)
+				{
+					if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+						continue;
+
+					if (IPAddress.IsLoopback(address.Address))
+						continue;
+
+					if (!address.IsDnsEligible)
+					{
+						if (mostSuitableIp == null)
+							mostSuitableIp = address;
+						continue;
+					}
+
+					// The best IP is the IP got from DHCP server
+					if (address.PrefixOrigin != PrefixOrigin.Dhcp)
+					{
+						if (mostSuitableIp == null || !mostSuitableIp.IsDnsEligible)
+							mostSuitableIp = address;
+						continue;
+					}
+
+					return address.Address.ToString();
+				}
+			}
+
+			return mostSuitableIp != null
+				? mostSuitableIp.Address.ToString()
+				: "";
+		}
+
 		private void ServerCode(object obj)
 		{
 			UInt16 port = (UInt16)obj;
-			IPAddress selfIP = IPAddress.Parse("127.0.0.1");
+			IPAddress selfIP = IPAddress.Parse(GetLocalIpAddress());//GetLocalIPv4(NetworkInterfaceType.Ethernet));
 			IPEndPoint localEP = new IPEndPoint(selfIP, port);
+			IOHandler IOH = new IOHandler();
+
 			// Connect
 			try
 			{
@@ -98,7 +151,7 @@ namespace RemoteDesktop
 
 				server.Listen(1); // Allow 1 client.
 
-				Program.sw.LogMessage("Waiting for a connection to take place");
+				Program.sw.LogMessage("Waiting for a connection to take place on " + selfIP.ToString() + ":" + port);
 				Socket handler = server.Accept();
 				Program.sw.LogMessage("Connected to a client");
 
@@ -123,9 +176,13 @@ namespace RemoteDesktop
 					Console.WriteLine();
 					Program.sw.LogMessage("Text received from client: '" + data + '\'');
 
-					if (data == "CLOSE")
+					if (data.Substring(0, 6) == "CLOSE")
 					{
 						Program.sw.stopSharing = true;
+					}
+					else
+					{
+						IOH.HandleEvent(data);
 					}
 
 					// 200 is HTTP Status code for OK
@@ -186,7 +243,27 @@ namespace RemoteDesktop
 					}
 					else
 					{
-						sendData = "Hello World!<EOF>";
+						lock (Program.cw.KeyCodes)
+						{
+							if (Program.cw.KeyCodes.Count > 0)
+							{
+								sendData = "INPTEV";
+								while (Program.cw.KeyCodes.Count > 0)
+								{
+									sendData += "name=key,keycode=" + Program.cw.KeyCodes.Dequeue().ToString("X");
+									if (Program.cw.KeyCodes.Count > 0)
+									{
+										sendData += "/";
+									}
+								}
+							}
+							else
+							{
+								sendData = "MSGIEVdata=No keys pressed";
+							}
+						}
+
+						sendData += "<EOF>"; // End of stream
 					}
 					msg = Encoding.ASCII.GetBytes(sendData); // TODO sends code, should include metadata e.g. screen resolution
 					bytesSent = client.Send(msg);
