@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -83,23 +85,35 @@ namespace RemoteDesktop
 			serverThread.Start(port);
 		}
 
-		public static string GetLocalIPAddress()
-		{
-			var host = Dns.GetHostEntry(Dns.GetHostName());
-			foreach (var ip in host.AddressList)
+		    internal static string GetLocalIPv4(NetworkInterfaceType _type)
 			{
-				if (ip.AddressFamily == AddressFamily.InterNetwork)
+				string output = "";
+				foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces())
 				{
-					return ip.ToString();
+					if (item.NetworkInterfaceType == _type && item.OperationalStatus == OperationalStatus.Up)
+					{
+						IPInterfaceProperties adapterProperties = item.GetIPProperties();
+						if (adapterProperties.GatewayAddresses.FirstOrDefault() != null)
+						{
+							foreach (UnicastIPAddressInformation ip in adapterProperties.UnicastAddresses)
+							{
+								if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+								{
+									output = ip.Address.ToString();
+									break;
+								}
+							}
+						}
+					}
+					if (output != "") { break; }
 				}
+				return output;
 			}
-			throw new Exception("No network adapters with an IPv4 address in the system!");
-		}
 
 		private void ServerCode(object obj)
 		{
 			UInt16 port = (UInt16)obj;
-			IPAddress selfIP = IPAddress.Parse(GetLocalIPAddress());
+			IPAddress selfIP = IPAddress.Parse(GetLocalIPv4(NetworkInterfaceType.Ethernet));
 			IPEndPoint localEP = new IPEndPoint(selfIP, port);
 			IOHandler IOH = new IOHandler();
 
