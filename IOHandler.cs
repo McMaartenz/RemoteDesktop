@@ -93,11 +93,16 @@ namespace RemoteDesktop
 									}
 									break;
 
+								case "image":
+									{
+										// Handle
+									}
+									break;
+
 								default:
 									Console.WriteLine("Unrecognized name " + section.innerArgs["name"]);
 									break;
 							}
-							
 						}
 						break;
 
@@ -125,7 +130,7 @@ namespace RemoteDesktop
 						{
 							wVk = keyStroke,
 							wScan = 0,
-							dwFlags = 0,//(uint)(IOH_Key.KEYEVENTF.KeyDown | IOH_Key.KEYEVENTF.Scancode),
+							dwFlags = (uint)(IOH_Key.KEYEVENTF.KeyDown),
 							dwExtraInfo = IOH_Key.GetMessageExtraInfo()
 						}
 					} 
@@ -138,7 +143,17 @@ namespace RemoteDesktop
 				IOH_Key.SendKeys(inputs);
 			}
 
-		}
+			// Release keys! important
 
+			for (i = 0; i < inputs.Length; i++)
+			{
+				inputs[i].u.ki.dwFlags = (uint)(IOH_Key.KEYEVENTF.KeyUp);
+			}
+
+			if (inputs.Length > 0)
+			{
+				IOH_Key.SendKeys(inputs);
+			}
+		}
 	}
 }
