@@ -46,6 +46,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IOH_Key.cs" />
+    <Compile Include="ClientWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ClientWindow.Designer.cs">
+      <DependentUpon>ClientWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IOHandler.cs" />
+    <Compile Include="IOH_Instruction.cs" />
+    <Compile Include="IOH_Section.cs" />
+    <Compile Include="ServerWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ServerWindow.Designer.cs">
+      <DependentUpon>ServerWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="StartWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -54,6 +70,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="ClientWindow.resx">
+      <DependentUpon>ClientWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -63,6 +82,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="ServerWindow.resx">
+      <DependentUpon>ServerWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="StartWindow.resx">
       <DependentUpon>StartWindow.cs</DependentUpon>
     </EmbeddedResource>

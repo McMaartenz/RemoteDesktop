@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace RemoteDesktop
@@ -7,16 +10,23 @@ namespace RemoteDesktop
 	public partial class StartWindow : Form
 	{
 		[STAThread]
-		public static void Start()
+		internal static void Start()
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new StartWindow());
+			Application.Run(Program.form = new StartWindow());
 		}
 
-		public StartWindow()
+		internal StartWindow()
 		{
 			InitializeComponent();
+			(Program.sw = new ServerWindow()).Hide();
+			(Program.cw = new ClientWindow()).Hide();
+		}
+		
+		private void ExceptionMsg(Exception e)
+		{
+			MessageBox.Show(e.ToString(), "Unhandled exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
 		}
 
 		private (IPAddress, UInt16?) ValidateIPAndPort(string IP, string Port)
@@ -44,7 +54,15 @@ namespace RemoteDesktop
 			{
 				return;
 			}
-			// Client code
+
+			// Prevent clicking again
+			CreateHost_Start.Enabled = false;
+			RemoteHost_Connect.Enabled = false;
+			Visible = false;
+			Program.cw.Show();
+
+			Thread clientThread = new Thread(new ParameterizedThreadStart(ClientCode));
+			clientThread.Start(address);
 		}
 
 		private void CreateHost_Start_Click(object sender, EventArgs e)
@@ -54,7 +72,186 @@ namespace RemoteDesktop
 			{
 				return;
 			}
-			// Server code
+
+			// Prevent clicking again
+			CreateHost_Start.Enabled = false;
+			RemoteHost_Connect.Enabled = false;
+			Visible = false;
+			Program.sw.Show();
+
+			Thread serverThread = new Thread(new ParameterizedThreadStart(ServerCode));
+			serverThread.Start(port);
+		}
+
+		private void ServerCode(object obj)
+		{
+			UInt16 port = (UInt16)obj;
+			IPAddress selfIP = IPAddress.Parse("127.0.0.1");
+			IPEndPoint localEP = new IPEndPoint(selfIP, port);
+			IOHandler IOH = new IOHandler();
+
+			// Connect
+			try
+			{
+
+				// TODO do rewrite
+				Socket server = new Socket(selfIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				server.Bind(localEP);
+
+				server.Listen(1); // Allow 1 client.
+
+				Program.sw.LogMessage("Waiting for a connection to take place");
+				Socket handler = server.Accept();
+				Program.sw.LogMessage("Connected to a client");
+
+				// temporary
+				while (!Program.sw.stopSharing)
+				{
+					string data = "";
+					byte[] bytes = null;
+
+					do
+					{
+						bytes = new byte[1024];
+						int bytesRec = handler.Receive(bytes);
+						data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
+					}
+					while (data.IndexOf("<EOF>") == -1);
+
+					// Remove <EOF>
+					data = data.Substring(0, data.Length - 5);
+
+
+					Console.WriteLine();
+					Program.sw.LogMessage("Text received from client: '" + data + '\'');
+
+					if (data.Substring(0, 6) == "CLOSE")
+					{
+						Program.sw.stopSharing = true;
+					}
+					else
+					{
+						IOH.HandleEvent(data);
+					}
+
+					// 200 is HTTP Status code for OK
+					byte[] msg = Encoding.ASCII.GetBytes("200"); // Send response
+					handler.Send(msg);
+					Program.sw.LogMessage("Sent answer to client.");
+					Thread.Sleep(500);
+				}
+
+				handler.Send(Encoding.ASCII.GetBytes("CLOSE"));
+				Thread.Sleep(100);
+				handler.Shutdown(SocketShutdown.Both);
+				handler.Close();
+				server.Close();
+				server = null;
+
+			}
+			catch (Exception exc)
+			{
+				ExceptionMsg(exc);
+			}
+			finally
+			{
+				MessageBox.Show("The remote host session ended.", "Session ended", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				BeginInvoke(new Action(() => // Send to GUI thread
+				{
+					CreateHost_Start.Enabled = true;
+					RemoteHost_Connect.Enabled = true;
+					Visible = true;
+					Program.sw.Hide();
+				}));
+			}
+		}
+
+		private void ClientCode(object obj)
+		{
+			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
+			byte[] bytes = new byte[1024];
+
+			try
+			{
+				IPEndPoint remoteEP = new IPEndPoint(address.IP, (Int32)address.Port);
+				Socket client = new Socket(address.IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				client.Connect(remoteEP);
+				Console.WriteLine("Connected to remote server");
+
+				string received;
+				int bytesSent, bytesRec;
+				byte[] msg;
+				string sendData;
+
+				while (client.Connected)
+				{
+
+					if (Program.cw.stopSharing)
+					{
+						sendData = "CLOSE<EOF>";
+					}
+					else
+					{
+						lock (Program.cw.KeyCodes)
+						{
+							if (Program.cw.KeyCodes.Count > 0)
+							{
+								sendData = "INPTEV";
+								while (Program.cw.KeyCodes.Count > 0)
+								{
+									sendData += "name=key,keycode=" + Program.cw.KeyCodes.Dequeue().ToString("X");
+									if (Program.cw.KeyCodes.Count > 0)
+									{
+										sendData += "/";
+									}
+								}
+							}
+							else
+							{
+								sendData = "MSGIEVdata=No keys pressed";
+							}
+						}
+
+						sendData += "<EOF>"; // End of stream
+					}
+					msg = Encoding.ASCII.GetBytes(sendData); // TODO sends code, should include metadata e.g. screen resolution
+					bytesSent = client.Send(msg);
+					
+					bytesRec = client.Receive(bytes);
+					received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+					
+					Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					
+					if (Program.cw.stopSharing)
+					{
+						MessageBox.Show("Connection closed.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						break;
+					}
+					else if (received == "CLOSE")
+					{
+						MessageBox.Show("Connection closed by host.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+						break;
+					}
+				}
+
+				client.Shutdown(SocketShutdown.Both);
+				client.Close();
+				client = null;
+			}
+			catch (Exception exc)
+			{
+				ExceptionMsg(exc);
+			}
+			finally
+			{
+				BeginInvoke(new Action(() => // Send to GUI thread
+				{
+					CreateHost_Start.Enabled = true;
+					RemoteHost_Connect.Enabled = true;
+					Visible = true;
+					Program.cw.Hide();
+				}));
+			}
 		}
 	}
 }
