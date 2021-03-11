@@ -142,18 +142,6 @@ namespace RemoteDesktop
 			{
 				IOH_Key.SendKeys(inputs);
 			}
-
-			// Release keys! important
-
-			for (i = 0; i < inputs.Length; i++)
-			{
-				inputs[i].u.ki.dwFlags = (uint)(IOH_Key.KEYEVENTF.KeyUp);
-			}
-
-			if (inputs.Length > 0)
-			{
-				IOH_Key.SendKeys(inputs);
-			}
 		}
 	}
 }

@@ -82,7 +82,14 @@ namespace RemoteDesktop
 
         internal static void SendKeys(INPUT[] inputs)
 		{
-            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT))); // Press keys
+
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                inputs[i].u.ki.dwFlags = (uint)(KEYEVENTF.KeyUp);
+            }
+
+            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT))); // Release keys
         }
     }
 }
