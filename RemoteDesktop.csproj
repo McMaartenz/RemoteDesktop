@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IOH_Key.cs" />
     <Compile Include="ClientWindow.cs">
       <SubType>Form</SubType>
     </Compile>
