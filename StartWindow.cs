@@ -83,10 +83,23 @@ namespace RemoteDesktop
 			serverThread.Start(port);
 		}
 
+		public static string GetLocalIPAddress()
+		{
+			var host = Dns.GetHostEntry(Dns.GetHostName());
+			foreach (var ip in host.AddressList)
+			{
+				if (ip.AddressFamily == AddressFamily.InterNetwork)
+				{
+					return ip.ToString();
+				}
+			}
+			throw new Exception("No network adapters with an IPv4 address in the system!");
+		}
+
 		private void ServerCode(object obj)
 		{
 			UInt16 port = (UInt16)obj;
-			IPAddress selfIP = IPAddress.Parse("127.0.0.1");
+			IPAddress selfIP = IPAddress.Parse(GetLocalIPAddress());
 			IPEndPoint localEP = new IPEndPoint(selfIP, port);
 			IOHandler IOH = new IOHandler();
 
@@ -100,7 +113,7 @@ namespace RemoteDesktop
 
 				server.Listen(1); // Allow 1 client.
 
-				Program.sw.LogMessage("Waiting for a connection to take place");
+				Program.sw.LogMessage("Waiting for a connection to take place on " + selfIP.ToString() + ":" + port);
 				Socket handler = server.Accept();
 				Program.sw.LogMessage("Connected to a client");
 
