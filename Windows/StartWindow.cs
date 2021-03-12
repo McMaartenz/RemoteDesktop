@@ -129,9 +129,7 @@ namespace RemoteDesktop
 				}
 			}
 
-			return mostSuitableIp != null
-				? mostSuitableIp.Address.ToString()
-				: "";
+			return (mostSuitableIp != null) ? mostSuitableIp.Address.ToString() : "";
 		}
 
 		private void ServerCode(object obj)
@@ -176,7 +174,7 @@ namespace RemoteDesktop
 					Console.WriteLine();
 					Program.sw.LogMessage("Text received from client: '" + data + '\'');
 
-					if (data.Substring(0, 6) == "CLOSE")
+					if (data.Substring(0, 5) == "CLOSE")
 					{
 						Program.sw.stopSharing = true;
 					}
@@ -275,6 +273,7 @@ namespace RemoteDesktop
 					
 					if (Program.cw.stopSharing)
 					{
+						client.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
 						MessageBox.Show("Connection closed.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
 						break;
 					}

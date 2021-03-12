@@ -45,7 +45,6 @@ namespace RemoteDesktop
 			{
 				KeyCodes.Enqueue(e.KeyValue);
 			}
-			Console.WriteLine("Event!");
 		}
 	}
 }

@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IOH\IOH_Key.cs" />
+    <Compile Include="Utility.cs" />
     <Compile Include="Windows\ClientWindow.cs">
       <SubType>Form</SubType>
     </Compile>

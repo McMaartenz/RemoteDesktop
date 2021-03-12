@@ -5,25 +5,26 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
-
+using System.Windows.Forms;
+using System.IO;
 
 namespace RemoteDesktop
 {
-    class SchreenToByteArray
+    class Utility
     {
-        private void Capture(object)
+        internal static Bitmap Capture()
         {
-            Bitmap Capture = new Bitmap(Schreen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height PixelFormat.Format32bppArgb);
-            return Capture
-                
+            Bitmap Capture = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, PixelFormat.Format32bppArgb);
+            return Capture;  
         }
-    }
-    public static byte[] BitmapToByte2(Capture img)
-    {
-        using (var stream = new MemoryStream())
+
+        internal static byte[] BitmapToByteArr(Bitmap img)
         {
-            img.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-            return stream.ToArray();
+            using (var stream = new MemoryStream())
+            {
+                img.Save(stream, ImageFormat.Png);
+                return stream.ToArray();
+            }
         }
     }
 }
