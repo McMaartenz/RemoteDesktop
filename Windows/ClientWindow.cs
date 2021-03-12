@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 
 namespace RemoteDesktop
 {
@@ -12,6 +13,7 @@ namespace RemoteDesktop
 
 		Graphics WG;
 		Bitmap screen;
+		private object drawImage;
 
 		public ClientWindow()
 		{
@@ -28,7 +30,10 @@ namespace RemoteDesktop
 
 			lock (screen)
 			{
-				WG.DrawImage(screen, 0, 0, Width, Height);
+				screen = Utility.Capture();
+				screen.Save("output.bmp", ImageFormat.Bmp);
+				WG.DrawImage(screen, 0, 0);
+				byte[] outp = Utility.BitmapToByteArr(screen);
 			}
 
 			WG = null;
