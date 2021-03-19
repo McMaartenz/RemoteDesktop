@@ -6,7 +6,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 
 namespace RemoteDesktop
 {
@@ -161,7 +160,7 @@ namespace RemoteDesktop
 
 					do
 					{
-						bytes = new byte[1024];
+						bytes = new byte[45000];
 						int bytesRec = handler.Receive(bytes);
 						data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 					}
@@ -218,7 +217,7 @@ namespace RemoteDesktop
 		private void ClientCode(object obj)
 		{
 			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
-			byte[] bytes = new byte[1024];
+			byte[] bytes = new byte[45000];
 
 			try
 			{

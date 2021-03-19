@@ -1,4 +1,8 @@
-﻿namespace RemoteDesktop
+﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+
+namespace RemoteDesktop
 {
 	static class Program
 	{
@@ -8,6 +12,12 @@
 
 		static void Main()
 		{
+			Bitmap img = Utility.CaptureScreen();
+			Byte[] outp = Utility.BitmapToByteArr(img);
+			Bitmap img2 = Utility.ByteArrToBitmap(outp);
+
+			Console.WriteLine(outp.Length);
+			img2.Save("myfile.bmp", ImageFormat.Bmp);
 			StartWindow.Start();
 		}
 	}

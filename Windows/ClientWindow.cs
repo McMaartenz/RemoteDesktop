@@ -24,21 +24,6 @@ namespace RemoteDesktop
 
 		}
 
-		private void Render_Click(object sender, EventArgs e)
-		{
-			WG = CreateGraphics();
-
-			lock (screen)
-			{
-				screen = Utility.Capture();
-				screen.Save("output.bmp", ImageFormat.Bmp);
-				WG.DrawImage(screen, 0, 0);
-				byte[] outp = Utility.BitmapToByteArr(screen);
-			}
-
-			WG = null;
-		}
-
 		private void CloseCon_Click(object sender, EventArgs e)
 		{
 			stopSharing = true;

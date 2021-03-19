@@ -29,23 +29,12 @@ namespace RemoteDesktop
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.Render = new System.Windows.Forms.Button();
 			this.CloseCon = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
-			// Render
-			// 
-			this.Render.Location = new System.Drawing.Point(12, 12);
-			this.Render.Name = "Render";
-			this.Render.Size = new System.Drawing.Size(75, 23);
-			this.Render.TabIndex = 0;
-			this.Render.Text = "Render";
-			this.Render.UseVisualStyleBackColor = true;
-			this.Render.Click += new System.EventHandler(this.Render_Click);
-			// 
 			// CloseCon
 			// 
-			this.CloseCon.Location = new System.Drawing.Point(93, 12);
+			this.CloseCon.Location = new System.Drawing.Point(1133, 610);
 			this.CloseCon.Name = "CloseCon";
 			this.CloseCon.Size = new System.Drawing.Size(119, 23);
 			this.CloseCon.TabIndex = 1;
@@ -59,7 +48,6 @@ namespace RemoteDesktop
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1264, 681);
 			this.Controls.Add(this.CloseCon);
-			this.Controls.Add(this.Render);
 			this.KeyPreview = true;
 			this.Name = "ClientWindow";
 			this.Text = "ClientWindow";
@@ -69,8 +57,6 @@ namespace RemoteDesktop
 		}
 
 		#endregion
-
-		private System.Windows.Forms.Button Render;
 		private System.Windows.Forms.Button CloseCon;
 	}
 }
