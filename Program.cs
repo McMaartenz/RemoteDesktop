@@ -17,7 +17,7 @@ namespace RemoteDesktop
 			Bitmap img2 = Utility.ByteArrToBitmap(outp);
 
 			Console.WriteLine(outp.Length);
-			img2.Save("myfile.bmp", ImageFormat.Bmp);
+			img2.Save("myfile.jpeg", ImageFormat.Jpeg);
 			StartWindow.Start();
 		}
 	}

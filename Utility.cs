@@ -16,9 +16,9 @@ namespace RemoteDesktop
         {
             Bitmap imgScaled;
 
-            if (img.Size.Height > 1280 || img.Size.Width > 720)
+            if (img.Size.Height > 1920 || img.Size.Width > 1080)
 			{
-                imgScaled = new Bitmap(img, 853, 480);
+                imgScaled = new Bitmap(img, 1920, 1080);
 			}
 			else
 			{
