@@ -29,12 +29,34 @@ namespace RemoteDesktop
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.components = new System.ComponentModel.Container();
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(800, 450);
-			this.Text = "ClientWindow";
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.SuspendLayout();
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(796, 24);
+            this.menuStrip1.TabIndex = 1;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // ClientWindow
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.ClientSize = new System.Drawing.Size(796, 467);
+            this.Controls.Add(this.menuStrip1);
+            this.DoubleBuffered = true;
+            this.Name = "ClientWindow";
+            this.Text = "ClientWindow";
+            this.Load += new System.EventHandler(this.ClientWindow_Load);
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
 		}
 
-		#endregion
-	}
+        #endregion
+        private System.Windows.Forms.MenuStrip menuStrip1;
+    }
 }

@@ -8,7 +8,11 @@
 
 		static void Main()
 		{
-			StartWindow.Start();
+			 Uitprobeerfile Upf = new Uitprobeerfile();
+			Upf.M();
+			//		StartWindow.Start();
 		}
 	}
 }
+
+
