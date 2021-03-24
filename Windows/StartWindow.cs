@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -160,7 +161,7 @@ namespace RemoteDesktop
 
 					do
 					{
-						bytes = new byte[45000];
+						bytes = new byte[450000];
 						int bytesRec = handler.Receive(bytes);
 						data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 					}
@@ -182,14 +183,15 @@ namespace RemoteDesktop
 						IOH.HandleEvent(data);
 					}
 
-					// 200 is HTTP Status code for OK
-					byte[] msg = Encoding.ASCII.GetBytes("200"); // Send response
+					byte[] msg = Utility.BitmapToByteArr(Utility.CaptureScreen());
+
+					//Console.WriteLine(outp.Length);
 					handler.Send(msg);
 					Program.sw.LogMessage("Sent answer to client.");
 					Thread.Sleep(500);
 				}
 
-				handler.Send(Encoding.ASCII.GetBytes("CLOSE"));
+				handler.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
 				Thread.Sleep(100);
 				handler.Shutdown(SocketShutdown.Both);
 				handler.Close();
@@ -217,7 +219,7 @@ namespace RemoteDesktop
 		private void ClientCode(object obj)
 		{
 			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
-			byte[] bytes = new byte[45000];
+			byte[] bytes = new byte[450000];
 
 			try
 			{
@@ -266,10 +268,27 @@ namespace RemoteDesktop
 					bytesSent = client.Send(msg);
 					
 					bytesRec = client.Receive(bytes);
-					received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-					
-					Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
-					
+
+					try
+					{
+						received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+						Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message");
+					}
+					catch (Exception e)
+					{
+						received = "200";
+						try
+						{
+							//set screen
+							Program.cw.screen = Utility.ByteArrToBitmap(bytes);
+							Program.cw.UpdateScreen();
+						}
+						catch (Exception e_2)
+						{
+							MessageBox.Show("Corrupted image received. " + e_2.ToString(), "Receive error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						}
+					}
+
 					if (Program.cw.stopSharing)
 					{
 						client.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
