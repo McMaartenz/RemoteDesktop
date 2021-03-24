@@ -34,7 +34,7 @@ namespace RemoteDesktop
 			// 
 			// CloseCon
 			// 
-			this.CloseCon.Location = new System.Drawing.Point(1133, 610);
+			this.CloseCon.Location = new System.Drawing.Point(-1, -1);
 			this.CloseCon.Name = "CloseCon";
 			this.CloseCon.Size = new System.Drawing.Size(119, 23);
 			this.CloseCon.TabIndex = 1;
@@ -50,7 +50,7 @@ namespace RemoteDesktop
 			this.Controls.Add(this.CloseCon);
 			this.KeyPreview = true;
 			this.Name = "ClientWindow";
-			this.Text = "ClientWindow";
+			this.Text = "Client";
 			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ClientWindow_KeyDown);
 			this.ResumeLayout(false);
 
