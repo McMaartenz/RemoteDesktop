@@ -262,6 +262,27 @@ namespace RemoteDesktop
 							}
 						}
 
+						lock (Program.cw.MouseEvents)
+						{
+							if (Program.cw.MouseEvents.Count > 0)
+							{
+								sendData = "INPTEV";
+								while (Program.cw.KeyCodes.Count > 0)
+								{
+									MouseEventArgs v = Program.cw.MouseEvents.Dequeue();
+									sendData += "name=mouse,x=" + v.X + ",y=" + v.Y;
+									if (Program.cw.KeyCodes.Count > 0)
+									{
+										sendData += "/";
+									}
+								}
+							}
+							else
+							{
+								sendData = "MSGIEVdata=No keys pressed";
+							}
+						}
+
 						sendData += "<EOF>"; // End of stream
 					}
 					msg = Encoding.ASCII.GetBytes(sendData); // TODO sends code, should include metadata e.g. screen resolution

@@ -9,6 +9,7 @@ namespace RemoteDesktop
 	{
 		internal bool stopSharing = false;
 		internal Queue<int> KeyCodes = new Queue<int>();
+		internal Queue<MouseEventArgs> MouseEvents = new Queue<MouseEventArgs>();
 
 		Graphics WG;
 		internal Bitmap screen;
@@ -35,11 +36,16 @@ namespace RemoteDesktop
 
 		internal void UpdateScreen()
 		{
-			lock(screen)
+			WG = CreateGraphics();
+			WG.DrawImage(screen, 0, 0, Width, Height);
+			WG = null;
+		}
+
+		private void ClientWindow_MouseDown(object sender, MouseEventArgs e)
+		{
+			lock (MouseEvents)
 			{
-				WG = CreateGraphics();
-				WG.DrawImage(screen, 0, 0, Width, Height);
-				WG = null;
+				MouseEvents.Enqueue(e);
 			}
 		}
 	}

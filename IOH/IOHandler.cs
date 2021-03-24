@@ -93,12 +93,6 @@ namespace RemoteDesktop
 									}
 									break;
 
-								case "image":
-									{
-										// TODO
-									}
-									break;
-
 								default:
 									Console.WriteLine("Unrecognized name " + section.innerArgs["name"]);
 									break;
