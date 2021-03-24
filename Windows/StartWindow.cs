@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Drawing;
+using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -83,10 +86,56 @@ namespace RemoteDesktop
 			serverThread.Start(port);
 		}
 
+		public string GetLocalIpAddress()
+		{
+			UnicastIPAddressInformation mostSuitableIp = null;
+
+			var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+			foreach (var network in networkInterfaces)
+			{
+				if (network.OperationalStatus != OperationalStatus.Up)
+					continue;
+
+				var properties = network.GetIPProperties();
+
+				if (properties.GatewayAddresses.Count == 0)
+					continue;
+
+				foreach (var address in properties.UnicastAddresses)
+				{
+					if (address.Address.AddressFamily != AddressFamily.InterNetwork)
+						continue;
+
+					if (IPAddress.IsLoopback(address.Address))
+						continue;
+
+					if (!address.IsDnsEligible)
+					{
+						if (mostSuitableIp == null)
+							mostSuitableIp = address;
+						continue;
+					}
+
+					// The best IP is the IP got from DHCP server
+					if (address.PrefixOrigin != PrefixOrigin.Dhcp)
+					{
+						if (mostSuitableIp == null || !mostSuitableIp.IsDnsEligible)
+							mostSuitableIp = address;
+						continue;
+					}
+
+					return address.Address.ToString();
+				}
+			}
+
+			return (mostSuitableIp != null) ? mostSuitableIp.Address.ToString() : "";
+		}
+
 		private void ServerCode(object obj)
 		{
 			UInt16 port = (UInt16)obj;
-			IPAddress selfIP = IPAddress.Parse("127.0.0.1");
+			IPAddress selfIP = IPAddress.Parse(GetLocalIpAddress());//GetLocalIPv4(NetworkInterfaceType.Ethernet));
 			IPEndPoint localEP = new IPEndPoint(selfIP, port);
 			IOHandler IOH = new IOHandler();
 
@@ -100,7 +149,7 @@ namespace RemoteDesktop
 
 				server.Listen(1); // Allow 1 client.
 
-				Program.sw.LogMessage("Waiting for a connection to take place");
+				Program.sw.LogMessage("Waiting for a connection to take place on " + selfIP.ToString() + ":" + port);
 				Socket handler = server.Accept();
 				Program.sw.LogMessage("Connected to a client");
 
@@ -112,7 +161,7 @@ namespace RemoteDesktop
 
 					do
 					{
-						bytes = new byte[1024];
+						bytes = new byte[450000];
 						int bytesRec = handler.Receive(bytes);
 						data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 					}
@@ -125,7 +174,7 @@ namespace RemoteDesktop
 					Console.WriteLine();
 					Program.sw.LogMessage("Text received from client: '" + data + '\'');
 
-					if (data.Substring(0, 6) == "CLOSE")
+					if (data.Substring(0, 5) == "CLOSE")
 					{
 						Program.sw.stopSharing = true;
 					}
@@ -134,14 +183,15 @@ namespace RemoteDesktop
 						IOH.HandleEvent(data);
 					}
 
-					// 200 is HTTP Status code for OK
-					byte[] msg = Encoding.ASCII.GetBytes("200"); // Send response
+					byte[] msg = Utility.BitmapToByteArr(Utility.CaptureScreen());
+
+					//Console.WriteLine(outp.Length);
 					handler.Send(msg);
 					Program.sw.LogMessage("Sent answer to client.");
 					Thread.Sleep(500);
 				}
 
-				handler.Send(Encoding.ASCII.GetBytes("CLOSE"));
+				handler.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
 				Thread.Sleep(100);
 				handler.Shutdown(SocketShutdown.Both);
 				handler.Close();
@@ -169,7 +219,7 @@ namespace RemoteDesktop
 		private void ClientCode(object obj)
 		{
 			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
-			byte[] bytes = new byte[1024];
+			byte[] bytes = new byte[450000];
 
 			try
 			{
@@ -218,12 +268,30 @@ namespace RemoteDesktop
 					bytesSent = client.Send(msg);
 					
 					bytesRec = client.Receive(bytes);
-					received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-					
-					Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message", MessageBoxButtons.OK, MessageBoxIcon.Information);
-					
+
+					try
+					{
+						received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+						Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message");
+					}
+					catch (Exception e)
+					{
+						received = "200";
+						try
+						{
+							//set screen
+							Program.cw.screen = Utility.ByteArrToBitmap(bytes);
+							Program.cw.UpdateScreen();
+						}
+						catch (Exception e_2)
+						{
+							MessageBox.Show("Corrupted image received. " + e_2.ToString(), "Receive error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						}
+					}
+
 					if (Program.cw.stopSharing)
 					{
+						client.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
 						MessageBox.Show("Connection closed.", "Connection terminated", MessageBoxButtons.OK, MessageBoxIcon.Information);
 						break;
 					}

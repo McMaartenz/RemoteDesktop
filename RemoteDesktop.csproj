@@ -46,31 +46,32 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IOH_Key.cs" />
-    <Compile Include="ClientWindow.cs">
+    <Compile Include="IOH\IOH_Key.cs" />
+    <Compile Include="Utility.cs" />
+    <Compile Include="Windows\ClientWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ClientWindow.Designer.cs">
+    <Compile Include="Windows\ClientWindow.Designer.cs">
       <DependentUpon>ClientWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="IOHandler.cs" />
-    <Compile Include="IOH_Instruction.cs" />
-    <Compile Include="IOH_Section.cs" />
-    <Compile Include="ServerWindow.cs">
+    <Compile Include="IOH\IOHandler.cs" />
+    <Compile Include="IOH\IOH_Instruction.cs" />
+    <Compile Include="IOH\IOH_Section.cs" />
+    <Compile Include="Windows\ServerWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ServerWindow.Designer.cs">
+    <Compile Include="Windows\ServerWindow.Designer.cs">
       <DependentUpon>ServerWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="StartWindow.cs">
+    <Compile Include="Windows\StartWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="StartWindow.Designer.cs">
+    <Compile Include="Windows\StartWindow.Designer.cs">
       <DependentUpon>StartWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="ClientWindow.resx">
+    <EmbeddedResource Include="Windows\ClientWindow.resx">
       <DependentUpon>ClientWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -82,12 +83,13 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="ServerWindow.resx">
+    <EmbeddedResource Include="Windows\ServerWindow.resx">
       <DependentUpon>ServerWindow.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="StartWindow.resx">
+    <EmbeddedResource Include="Windows\StartWindow.resx">
       <DependentUpon>StartWindow.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

@@ -11,27 +11,13 @@ namespace RemoteDesktop
 		internal Queue<int> KeyCodes = new Queue<int>();
 
 		Graphics WG;
-		Bitmap screen;
+		internal Bitmap screen;
 
 		public ClientWindow()
 		{
 			InitializeComponent();
-
-			// This way it is not null
 			screen = new Bitmap(1, 1);
 
-		}
-
-		private void Render_Click(object sender, EventArgs e)
-		{
-			WG = CreateGraphics();
-
-			lock (screen)
-			{
-				WG.DrawImage(screen, 0, 0, Width, Height);
-			}
-
-			WG = null;
 		}
 
 		private void CloseCon_Click(object sender, EventArgs e)
@@ -45,7 +31,16 @@ namespace RemoteDesktop
 			{
 				KeyCodes.Enqueue(e.KeyValue);
 			}
-			Console.WriteLine("Event!");
+		}
+
+		internal void UpdateScreen()
+		{
+			lock(screen)
+			{
+				WG = CreateGraphics();
+				WG.DrawImage(screen, 0, 0, Width, Height);
+				WG = null;
+			}
 		}
 	}
 }

@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace RemoteDesktop
 {
@@ -10,8 +12,12 @@ namespace RemoteDesktop
 
 		static void Main()
 		{
-			//IOHandler IOH = new IOHandler(); // Virtual key codes!!
-			//IOH.HandleEvent("INPTEVname=key,keycode=0xA2/name=key,keycode=0x53");
+			//Bitmap img = Utility.CaptureScreen();
+			//Byte[] outp = Utility.BitmapToByteArr(img);
+			//Bitmap img2 = Utility.ByteArrToBitmap(outp);
+
+			//Console.WriteLine(outp.Length);
+			//img2.Save("myfile.jpeg", ImageFormat.Jpeg);
 			StartWindow.Start();
 		}
 	}
