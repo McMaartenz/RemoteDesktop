@@ -80,6 +80,12 @@ namespace RemoteDesktop
 								case "mouse":
 									{
 										(uint, uint) mousePos = ((uint)Int32.Parse(section.innerArgs["x"]), (uint)Int32.Parse(section.innerArgs["y"]));
+
+										// Do some math with the mouse position
+										{
+											
+										}
+										
 										string button = section.innerArgs["button"];
 										(uint, uint) action = GetMouseButton(button);
 										SetCursorPos((int)mousePos.Item1, (int)mousePos.Item2);

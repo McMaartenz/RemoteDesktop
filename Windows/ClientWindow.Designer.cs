@@ -42,10 +42,9 @@ namespace RemoteDesktop
 			this.DoubleBuffered = true;
 			this.Name = "ClientWindow";
 			this.Text = "ClientWindow";
-			this.Load += new System.EventHandler(this.ClientWindow_Load);
 			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ClientWindow_KeyDown_1);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ClientWindow_MouseDown);
 			this.ResumeLayout(false);
-
         }
 
         #endregion

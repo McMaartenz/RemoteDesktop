@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -262,11 +263,11 @@ namespace RemoteDesktop
 							if (Program.cw.MouseEvents.Count > 0)
 							{
 								sendData = "INPTEV";
-								while (Program.cw.KeyCodes.Count > 0)
+								while (Program.cw.MouseEvents.Count > 0)
 								{
-									MouseEventArgs v = Program.cw.MouseEvents.Dequeue();
-									sendData += "name=mouse,x=" + v.X + ",y=" + v.Y;
-									if (Program.cw.KeyCodes.Count > 0)
+									(MouseEventArgs, PointF) v = Program.cw.MouseEvents.Dequeue();
+									sendData += "name=mouse,button=" + v.Item1.Button.ToString().ToLower() +",x=" + v.Item1.X + ",y=" + v.Item1.Y + ",w=" + v.Item2.X + ",h=" + v.Item2.Y;
+									if (Program.cw.MouseEvents.Count > 0)
 									{
 										sendData += "/";
 									}

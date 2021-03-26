@@ -9,7 +9,7 @@ namespace RemoteDesktop
 	{
 		internal bool stopSharing = false;
 		internal Queue<int> KeyCodes = new Queue<int>();
-		internal Queue<MouseEventArgs> MouseEvents = new Queue<MouseEventArgs>();
+		internal Queue<(MouseEventArgs, PointF)> MouseEvents = new Queue<(MouseEventArgs, PointF)>();
 
 		Graphics WG;
 		internal Bitmap screen;
@@ -18,7 +18,6 @@ namespace RemoteDesktop
 		{
 			InitializeComponent();
 			screen = new Bitmap(1, 1);
-
 		}
 
 		private void CloseCon_Click(object sender, EventArgs e)
@@ -43,38 +42,8 @@ namespace RemoteDesktop
 		{
 			lock (MouseEvents)
 			{
-				MouseEvents.Enqueue(e);
+				MouseEvents.Enqueue((e, new PointF(Width, Height)));
 			}
-		}
-
-		private void button1_Click(object sender, EventArgs e)
-		{
-
-		}
-
-		private void closeConnectionToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-
-		}
-
-		private void ClientWindow_Load(object sender, EventArgs e)
-		{
-
-		}
-
-		private void closeConnectionToolStripMenuItem_Click_1(object sender, EventArgs e)
-		{
-
-		}
-
-		private void button1_Click_1(object sender, EventArgs e)
-		{
-
-		}
-
-		private void button1_Click_2(object sender, EventArgs e)
-		{
-
 		}
 
 		private void ClientWindow_KeyDown_1(object sender, KeyEventArgs e)
