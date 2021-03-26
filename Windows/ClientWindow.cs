@@ -78,5 +78,13 @@ namespace RemoteDesktop
 		{
 
 		}
+
+		private void ClientWindow_KeyDown_1(object sender, KeyEventArgs e)
+		{
+			lock (KeyCodes)
+			{
+				KeyCodes.Enqueue(e.KeyValue);
+			}
+		}
 	}
 }

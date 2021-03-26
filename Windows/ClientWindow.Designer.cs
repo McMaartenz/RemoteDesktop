@@ -53,6 +53,7 @@ namespace RemoteDesktop
 			this.Name = "ClientWindow";
 			this.Text = "ClientWindow";
 			this.Load += new System.EventHandler(this.ClientWindow_Load);
+			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ClientWindow_KeyDown_1);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 

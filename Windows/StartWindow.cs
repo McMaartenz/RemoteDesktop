@@ -146,11 +146,11 @@ namespace RemoteDesktop
 				// TODO do rewrite
 				Socket server = new Socket(selfIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 				server.Bind(localEP);
-
 				server.Listen(1); // Allow 1 client.
 
 				Program.sw.LogMessage("Waiting for a connection to take place on " + selfIP.ToString() + ":" + port);
 				Socket handler = server.Accept();
+				handler.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
 				Program.sw.LogMessage("Connected to a client");
 
 				// temporary
@@ -226,6 +226,7 @@ namespace RemoteDesktop
 				IPEndPoint remoteEP = new IPEndPoint(address.IP, (Int32)address.Port);
 				Socket client = new Socket(address.IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 				client.Connect(remoteEP);
+				client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
 				Console.WriteLine("Connected to remote server");
 
 				string received;
@@ -235,6 +236,7 @@ namespace RemoteDesktop
 
 				while (client.Connected)
 				{
+					sendData = "";
 
 					if (Program.cw.stopSharing)
 					{
@@ -277,7 +279,7 @@ namespace RemoteDesktop
 									}
 								}
 							}
-							else
+							else if (sendData == "")
 							{
 								sendData = "MSGIEVdata=No keys pressed";
 							}
@@ -285,28 +287,30 @@ namespace RemoteDesktop
 
 						sendData += "<EOF>"; // End of stream
 					}
-					msg = Encoding.ASCII.GetBytes(sendData); // TODO sends code, should include metadata e.g. screen resolution
+					msg = Encoding.ASCII.GetBytes(sendData);
 					bytesSent = client.Send(msg);
 					
 					bytesRec = client.Receive(bytes);
 
+
 					try
 					{
-						received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-						Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message");
+						//set screen
+						Program.cw.screen = Utility.ByteArrToBitmap(bytes);
+						Program.cw.UpdateScreen();
+						received = "200";
 					}
 					catch (Exception e)
 					{
-						received = "200";
 						try
 						{
-							//set screen
-							Program.cw.screen = Utility.ByteArrToBitmap(bytes);
-							Program.cw.UpdateScreen();
+							received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+							Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message");
 						}
-						catch (Exception e_2)
+						catch (Exception e2)
 						{
-							MessageBox.Show("Corrupted image received. " + e_2.ToString(), "Receive error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+							Console.WriteLine("Unknown crap sent by host");
+							received = "500";
 						}
 					}
 
