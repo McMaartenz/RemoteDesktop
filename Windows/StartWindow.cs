@@ -185,7 +185,6 @@ namespace RemoteDesktop
 
 					//Console.WriteLine(outp.Length);
 					handler.Send(msg);
-					Program.sw.LogMessage("Sent answer to client.");
 				}
 
 				handler.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
