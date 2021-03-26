@@ -27,7 +27,7 @@ namespace RemoteDesktop
 		
 		private void ExceptionMsg(Exception e)
 		{
-			MessageBox.Show(e.ToString(), "Unhandled exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			MessageBox.Show(e.ToString(), "Unhandled exception because this is terrible code", MessageBoxButtons.OK, MessageBoxIcon.Error);
 		}
 
 		private (IPAddress, UInt16?) ValidateIPAndPort(string IP, string Port)
@@ -186,7 +186,6 @@ namespace RemoteDesktop
 					//Console.WriteLine(outp.Length);
 					handler.Send(msg);
 					Program.sw.LogMessage("Sent answer to client.");
-					Thread.Sleep(500);
 				}
 
 				handler.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
