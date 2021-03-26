@@ -30,16 +30,7 @@ namespace RemoteDesktop
         private void InitializeComponent()
         {
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ClientWindow));
-			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
 			this.SuspendLayout();
-			// 
-			// menuStrip1
-			// 
-			this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-			this.menuStrip1.Name = "menuStrip1";
-			this.menuStrip1.Size = new System.Drawing.Size(796, 24);
-			this.menuStrip1.TabIndex = 1;
-			this.menuStrip1.Text = "menuStrip1";
 			// 
 			// ClientWindow
 			// 
@@ -48,18 +39,15 @@ namespace RemoteDesktop
 			this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
 			this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
 			this.ClientSize = new System.Drawing.Size(796, 467);
-			this.Controls.Add(this.menuStrip1);
 			this.DoubleBuffered = true;
 			this.Name = "ClientWindow";
 			this.Text = "ClientWindow";
 			this.Load += new System.EventHandler(this.ClientWindow_Load);
 			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ClientWindow_KeyDown_1);
 			this.ResumeLayout(false);
-			this.PerformLayout();
 
         }
 
         #endregion
-        private System.Windows.Forms.MenuStrip menuStrip1;
     }
 }

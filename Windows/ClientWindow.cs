@@ -36,9 +36,7 @@ namespace RemoteDesktop
 
 		internal void UpdateScreen()
 		{
-			WG = CreateGraphics();
-			WG.DrawImage(screen, 0, 0, Width, Height);
-			WG = null;
+			BackgroundImage = screen;
 		}
 
 		private void ClientWindow_MouseDown(object sender, MouseEventArgs e)

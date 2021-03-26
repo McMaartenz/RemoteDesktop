@@ -3,19 +3,23 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Windows.Forms;
 
 namespace RemoteDesktop
 {
     class Utility
     {
+        /*
         internal static Bitmap CaptureScreen()
         {
             return CaptureWindow(User32.GetDesktopWindow());
         }
+        */
+
         internal static byte[] BitmapToByteArr(Bitmap img)
         {
             Bitmap imgScaled;
-
+            /*
             if (img.Size.Height > 1920 || img.Size.Width > 1080)
 			{
                 imgScaled = new Bitmap(img, 1920, 1080);
@@ -23,11 +27,11 @@ namespace RemoteDesktop
 			else
 			{
                 imgScaled = img;
-			}
+			}*/
 
             using (var stream = new MemoryStream())
             {
-                imgScaled.Save(stream, ImageFormat.Jpeg);
+                img.Save(stream, ImageFormat.Jpeg);
                 return stream.ToArray();
             }
         }
@@ -41,6 +45,7 @@ namespace RemoteDesktop
             return boutp;
 		}
 
+        /*
         private class User32
         {
             [StructLayout(LayoutKind.Sequential)]
@@ -99,6 +104,16 @@ namespace RemoteDesktop
             Image img = Image.FromHbitmap(hBitmap);
             GDI32.DeleteObject(hBitmap);
             return (Bitmap)img;
+        } */
+
+        internal static Bitmap TakeScreenShot()
+        {
+            Bitmap bmp = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.CopyFromScreen(0, 0, 0, 0, Screen.PrimaryScreen.Bounds.Size);
+                return bmp;
+            }
         }
     }
 }

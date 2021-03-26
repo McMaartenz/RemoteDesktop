@@ -148,7 +148,6 @@ namespace RemoteDesktop
 
 				Program.sw.LogMessage("Waiting for a connection to take place on " + selfIP.ToString() + ":" + port);
 				Socket handler = server.Accept();
-				handler.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
 				Program.sw.LogMessage("Connected to a client");
 
 				// temporary
@@ -181,14 +180,13 @@ namespace RemoteDesktop
 						IOH.HandleEvent(data);
 					}
 
-					byte[] msg = Utility.BitmapToByteArr(Utility.CaptureScreen());
+					byte[] msg = Utility.BitmapToByteArr(Utility.TakeScreenShot());
 
 					//Console.WriteLine(outp.Length);
 					handler.Send(msg);
 				}
 
 				handler.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
-				Thread.Sleep(100);
 				handler.Shutdown(SocketShutdown.Both);
 				handler.Close();
 				server.Close();
@@ -222,7 +220,6 @@ namespace RemoteDesktop
 				IPEndPoint remoteEP = new IPEndPoint(address.IP, (Int32)address.Port);
 				Socket client = new Socket(address.IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 				client.Connect(remoteEP);
-				client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, true);
 				Console.WriteLine("Connected to remote server");
 
 				string received;
