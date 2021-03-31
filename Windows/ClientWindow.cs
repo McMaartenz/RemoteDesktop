@@ -53,5 +53,10 @@ namespace RemoteDesktop
 				KeyCodes.Enqueue(e.KeyValue);
 			}
 		}
-	}
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+			stopSharing = true;
+		}
+    }
 }
