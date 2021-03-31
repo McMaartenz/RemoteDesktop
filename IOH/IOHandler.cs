@@ -79,7 +79,7 @@ namespace RemoteDesktop
 							{
 								case "mouse":
 									{
-										(uint, uint) mousePos = ((uint)Int32.Parse(section.innerArgs["x"]), (uint)Int32.Parse(section.innerArgs["y"]));
+										(int, int) mousePos = (Int32.Parse(section.innerArgs["x"]), Int32.Parse(section.innerArgs["y"]));
 
 										// Do some math with the mouse position
 										{
@@ -88,8 +88,9 @@ namespace RemoteDesktop
 										
 										string button = section.innerArgs["button"];
 										(uint, uint) action = GetMouseButton(button);
-										SetCursorPos((int)mousePos.Item1, (int)mousePos.Item2);
-										mouse_event(action.Item1 | action.Item2, mousePos.Item1, mousePos.Item2, 0, 0);
+										SetCursorPos(mousePos.Item1, mousePos.Item2);
+										mouse_event(action.Item1 | action.Item2, (uint)mousePos.Item1, (uint)mousePos.Item2, (uint)mousePos.Item1, (uint)mousePos.Item2);
+										Program.sw.LogMessage("Mouse click at " + mousePos.Item1 + " & " + mousePos.Item2);
 									}
 									break;
 

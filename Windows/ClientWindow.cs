@@ -9,9 +9,7 @@ namespace RemoteDesktop
 	{
 		internal bool stopSharing = false;
 		internal Queue<int> KeyCodes = new Queue<int>();
-		internal Queue<(MouseEventArgs, PointF)> MouseEvents = new Queue<(MouseEventArgs, PointF)>();
-
-		Graphics WG;
+		internal Queue<((MouseEventArgs, Point), Point)> MouseEvents = new Queue<((MouseEventArgs, Point), Point)>();
 		internal Bitmap screen;
 
 		public ClientWindow()
@@ -35,6 +33,10 @@ namespace RemoteDesktop
 
 		internal void UpdateScreen()
 		{
+			Invoke(new Action(() => // Thread safe
+			{
+				ClientSize = new Size(screen.Width, screen.Height);
+			}));
 			BackgroundImage = screen;
 		}
 
@@ -42,8 +44,10 @@ namespace RemoteDesktop
 		{
 			lock (MouseEvents)
 			{
-				MouseEvents.Enqueue((e, new PointF(Width, Height)));
+				Point relativePoint = this.PointToClient(Cursor.Position);
+				MouseEvents.Enqueue(((e, relativePoint), new Point(ClientSize.Width, ClientSize.Height)));
 			}
+			Console.WriteLine(Width + " " + Height + " and " + ClientSize.Width + " " + ClientSize.Height);	
 		}
 
 		private void ClientWindow_KeyDown_1(object sender, KeyEventArgs e)

@@ -170,7 +170,6 @@ namespace RemoteDesktop
 
 
 					Console.WriteLine();
-					Program.sw.LogMessage("Text received from client: '" + data + '\'');
 
 					if (data.Substring(0, 5) == "CLOSE")
 					{
@@ -265,8 +264,8 @@ namespace RemoteDesktop
 								sendData = "INPTEV";
 								while (Program.cw.MouseEvents.Count > 0)
 								{
-									(MouseEventArgs, PointF) v = Program.cw.MouseEvents.Dequeue();
-									sendData += "name=mouse,button=" + v.Item1.Button.ToString().ToLower() +",x=" + v.Item1.X + ",y=" + v.Item1.Y + ",w=" + v.Item2.X + ",h=" + v.Item2.Y;
+									((MouseEventArgs, Point), Point) v = Program.cw.MouseEvents.Dequeue();
+									sendData += "name=mouse,button=" + v.Item1.Item1.Button.ToString().ToLower() +",x=" + v.Item1.Item2.X + ",y=" + v.Item1.Item2.Y + ",w=" + v.Item2.X + ",h=" + v.Item2.Y;
 									if (Program.cw.MouseEvents.Count > 0)
 									{
 										sendData += "/";
