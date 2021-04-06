@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -17,17 +18,22 @@ namespace RemoteDesktop
 		[return: MarshalAs(UnmanagedType.Bool)]
 		internal static extern bool SetCursorPos(int x, int y);
 
-		private const int MOUSEEVENTF_LEFTDOWN = 0x02;
-		private const int MOUSEEVENTF_LEFTUP = 0x04;
-		private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
-		private const int MOUSEEVENTF_RIGHTUP = 0x10;
+		private const int LEFTDOWN	 = 0x02,
+						  LEFTUP	 = 0x04,
+						  RIGHTDOWN	 = 0x08,
+						  RIGHTUP	 = 0x10,
+						  MIDDLEDOWN = 0x20,
+						  MIDDLEUP	 = 0x40;
+
+		internal static Rectangle SCREEN_RESOLUTION;
 
 		private (uint, uint) GetMouseButton(string button)
 		{
 			switch (button)
 			{
-				case "left": return (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP);
-				case "right": return (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP);
+				case "left": return (LEFTDOWN, LEFTUP);
+				case "right": return (RIGHTDOWN, RIGHTUP);
+				case "middle": return (MIDDLEDOWN, MIDDLEUP);
 				default: throw new ArgumentException();
 			}
 		}
@@ -79,23 +85,31 @@ namespace RemoteDesktop
 							{
 								case "mouse":
 									{
-										(uint, uint) mousePos = ((uint)Int32.Parse(section.innerArgs["x"]), (uint)Int32.Parse(section.innerArgs["y"]));
+										(int, int) mousePos = (Int32.Parse(section.innerArgs["x"]), Int32.Parse(section.innerArgs["y"]));
+										Size clientRes = new Size(Int32.Parse(section.innerArgs["w"]), Int32.Parse(section.innerArgs["h"]));
+										float windowRatio = (float)SCREEN_RESOLUTION.Width / clientRes.Width;
+
+										if (SCREEN_RESOLUTION.Width / SCREEN_RESOLUTION.Height != clientRes.Width / clientRes.Height)
+										{
+											throw new Exception("Client sent wrong resolution info");
+										}
+										
+										// CRITICAL Do some math with the mouse position
+										{
+											mousePos.Item1 = (int)(mousePos.Item1 * windowRatio);
+											mousePos.Item2 = (int)(mousePos.Item2 * windowRatio);
+										}
+										
 										string button = section.innerArgs["button"];
 										(uint, uint) action = GetMouseButton(button);
-										SetCursorPos((int)mousePos.Item1, (int)mousePos.Item2);
-										mouse_event(action.Item1 | action.Item2, mousePos.Item1, mousePos.Item2, 0, 0);
+										SetCursorPos(mousePos.Item1, mousePos.Item2);
+										mouse_event(action.Item1 | action.Item2, (uint)mousePos.Item1, (uint)mousePos.Item2, 0, 0);
 									}
 									break;
 
 								case "key":
 									{
 										keyStrokes.Enqueue((byte)Convert.ToInt32(section.innerArgs["keycode"], 16));
-									}
-									break;
-
-								case "image":
-									{
-										// TODO
 									}
 									break;
 

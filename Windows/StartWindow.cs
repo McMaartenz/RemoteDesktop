@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -15,6 +14,7 @@ namespace RemoteDesktop
 		[STAThread]
 		internal static void Start()
 		{
+
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(Program.form = new StartWindow());
@@ -23,13 +23,19 @@ namespace RemoteDesktop
 		internal StartWindow()
 		{
 			InitializeComponent();
+			IOHandler.SCREEN_RESOLUTION = Screen.PrimaryScreen.Bounds;
 			(Program.sw = new ServerWindow()).Hide();
 			(Program.cw = new ClientWindow()).Hide();
 		}
-		
+
 		private void ExceptionMsg(Exception e)
 		{
-			MessageBox.Show(e.ToString(), "Unhandled exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			ExceptionMsg(e.ToString());
+		}
+
+		private void ExceptionMsg(string e)
+		{
+			MessageBox.Show(e, "Oeps", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
 
 		private (IPAddress, UInt16?) ValidateIPAndPort(string IP, string Port)
@@ -117,7 +123,7 @@ namespace RemoteDesktop
 						continue;
 					}
 
-					// The best IP is the IP got from DHCP server
+					// The best IP is the IP gotten from the DHCP server
 					if (address.PrefixOrigin != PrefixOrigin.Dhcp)
 					{
 						if (mostSuitableIp == null || !mostSuitableIp.IsDnsEligible)
@@ -146,7 +152,6 @@ namespace RemoteDesktop
 				// TODO do rewrite
 				Socket server = new Socket(selfIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 				server.Bind(localEP);
-
 				server.Listen(1); // Allow 1 client.
 
 				Program.sw.LogMessage("Waiting for a connection to take place on " + selfIP.ToString() + ":" + port);
@@ -170,29 +175,24 @@ namespace RemoteDesktop
 					// Remove <EOF>
 					data = data.Substring(0, data.Length - 5);
 
-
-					Console.WriteLine();
-					Program.sw.LogMessage("Text received from client: '" + data + '\'');
-
 					if (data.Substring(0, 5) == "CLOSE")
 					{
 						Program.sw.stopSharing = true;
 					}
 					else
 					{
+						// TODO
+#if true
 						IOH.HandleEvent(data);
+#endif
 					}
 
-					byte[] msg = Utility.BitmapToByteArr(Utility.CaptureScreen());
+					byte[] msg = Utility.BitmapToByteArr(Utility.TakeScreenShot());
 
-					//Console.WriteLine(outp.Length);
 					handler.Send(msg);
-					Program.sw.LogMessage("Sent answer to client.");
-					Thread.Sleep(500);
 				}
 
 				handler.Send(Encoding.ASCII.GetBytes("CLOSE<EOF>"));
-				Thread.Sleep(100);
 				handler.Shutdown(SocketShutdown.Both);
 				handler.Close();
 				server.Close();
@@ -218,13 +218,13 @@ namespace RemoteDesktop
 
 		private void ClientCode(object obj)
 		{
-			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
+			(IPAddress IP, UInt16? Port) = ((IPAddress, UInt16?)) obj;
 			byte[] bytes = new byte[450000];
 
 			try
 			{
-				IPEndPoint remoteEP = new IPEndPoint(address.IP, (Int32)address.Port);
-				Socket client = new Socket(address.IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				IPEndPoint remoteEP = new IPEndPoint(IP, (Int32)Port);
+				Socket client = new Socket(IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 				client.Connect(remoteEP);
 				Console.WriteLine("Connected to remote server");
 
@@ -235,6 +235,7 @@ namespace RemoteDesktop
 
 				while (client.Connected)
 				{
+					sendData = "";
 
 					if (Program.cw.stopSharing)
 					{
@@ -262,30 +263,53 @@ namespace RemoteDesktop
 							}
 						}
 
+						lock (Program.cw.MouseEvents)
+						{
+							if (Program.cw.MouseEvents.Count > 0)
+							{
+								sendData = "INPTEV";
+								while (Program.cw.MouseEvents.Count > 0)
+								{
+									((MouseEventArgs, Point), Point) v = Program.cw.MouseEvents.Dequeue();
+									sendData += "name=mouse,button=" + v.Item1.Item1.Button.ToString().ToLower() +",x=" + v.Item1.Item2.X + ",y=" + v.Item1.Item2.Y + ",w=" + v.Item2.X + ",h=" + v.Item2.Y;
+									if (Program.cw.MouseEvents.Count > 0)
+									{
+										sendData += "/";
+									}
+								}
+							}
+							else if (sendData == "")
+							{
+								sendData = "MSGIEVdata=No keys pressed";
+							}
+						}
+
 						sendData += "<EOF>"; // End of stream
 					}
-					msg = Encoding.ASCII.GetBytes(sendData); // TODO sends code, should include metadata e.g. screen resolution
+					msg = Encoding.ASCII.GetBytes(sendData);
 					bytesSent = client.Send(msg);
 					
 					bytesRec = client.Receive(bytes);
 
+
 					try
 					{
-						received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-						Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message");
-					}
-					catch (Exception e)
-					{
+						//set screen
+						Program.cw.screen = Utility.ByteArrToBitmap(bytes);
+						Program.cw.UpdateScreen();
 						received = "200";
+					}
+					catch (Exception)
+					{
 						try
 						{
-							//set screen
-							Program.cw.screen = Utility.ByteArrToBitmap(bytes);
-							Program.cw.UpdateScreen();
+							received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+							Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message");
 						}
-						catch (Exception e_2)
+						catch (Exception)
 						{
-							MessageBox.Show("Corrupted image received. " + e_2.ToString(), "Receive error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+							Console.WriteLine("Unknown crap sent by host");
+							received = "500";
 						}
 					}
 
