@@ -52,7 +52,6 @@ namespace RemoteDesktop
 				Point relativePoint = this.PointToClient(Cursor.Position);
 				MouseEvents.Enqueue(((e, relativePoint), new Point(ClientSize.Width, ClientSize.Height)));
 			}
-			Console.WriteLine(Width + " " + Height + " and " + ClientSize.Width + " " + ClientSize.Height);	
 		}
 
 		private void ClientWindow_KeyDown_1(object sender, KeyEventArgs e)

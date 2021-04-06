@@ -14,6 +14,7 @@ namespace RemoteDesktop
 		[STAThread]
 		internal static void Start()
 		{
+
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(Program.form = new StartWindow());
@@ -22,6 +23,7 @@ namespace RemoteDesktop
 		internal StartWindow()
 		{
 			InitializeComponent();
+			IOHandler.SCREEN_RESOLUTION = Screen.PrimaryScreen.Bounds;
 			(Program.sw = new ServerWindow()).Hide();
 			(Program.cw = new ClientWindow()).Hide();
 		}
@@ -180,7 +182,7 @@ namespace RemoteDesktop
 					else
 					{
 						// TODO
-#if false
+#if true
 						IOH.HandleEvent(data);
 #endif
 					}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -21,6 +22,8 @@ namespace RemoteDesktop
 		private const int MOUSEEVENTF_LEFTUP = 0x04;
 		private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
 		private const int MOUSEEVENTF_RIGHTUP = 0x10;
+
+		internal static Rectangle SCREEN_RESOLUTION;
 
 		private (uint, uint) GetMouseButton(string button)
 		{
@@ -80,17 +83,24 @@ namespace RemoteDesktop
 								case "mouse":
 									{
 										(int, int) mousePos = (Int32.Parse(section.innerArgs["x"]), Int32.Parse(section.innerArgs["y"]));
+										Size clientRes = new Size(Int32.Parse(section.innerArgs["w"]), Int32.Parse(section.innerArgs["h"]));
+										float windowRatio = (float)SCREEN_RESOLUTION.Width / clientRes.Width;
 
-										// Do some math with the mouse position
+										if (SCREEN_RESOLUTION.Width / SCREEN_RESOLUTION.Height != clientRes.Width / clientRes.Height)
 										{
-											
+											throw new Exception("Client sent wrong resolution info");
+										}
+										
+										// CRITICAL Do some math with the mouse position
+										{
+											mousePos.Item1 = (int)(mousePos.Item1 * windowRatio);
+											mousePos.Item2 = (int)(mousePos.Item2 * windowRatio);
 										}
 										
 										string button = section.innerArgs["button"];
 										(uint, uint) action = GetMouseButton(button);
 										SetCursorPos(mousePos.Item1, mousePos.Item2);
-										mouse_event(action.Item1 | action.Item2, (uint)mousePos.Item1, (uint)mousePos.Item2, (uint)mousePos.Item1, (uint)mousePos.Item2);
-										Program.sw.LogMessage("Mouse click at " + mousePos.Item1 + " & " + mousePos.Item2);
+										mouse_event(action.Item1 | action.Item2, (uint)mousePos.Item1, (uint)mousePos.Item2, 0, 0);
 									}
 									break;
 
