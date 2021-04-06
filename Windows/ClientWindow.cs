@@ -33,15 +33,7 @@ namespace RemoteDesktop
 
 		internal void UpdateScreen()
 		{
-			Invoke(new Action(() => // Thread safe
-			{
-				float ratio_client = ClientSize.Width / ClientSize.Height;
-				float ratio_image = screen.Width / screen.Height;
-				if (ratio_client != ratio_image)
-				{
-					ClientSize = new Size(ClientSize.Width, (int)(ClientSize.Width / 1.6));
-				}
-			}));
+			UpdateResize();
 			BackgroundImage = screen;
 		}
 
@@ -66,5 +58,23 @@ namespace RemoteDesktop
         {
 			stopSharing = true;
 		}
-    }
+
+		private void ClientWindow_ResizeEnd(object sender, EventArgs e)
+		{
+			UpdateResize(true); // Update regardless of ratio check
+		}
+
+		private void UpdateResize(bool force = false)
+		{
+			Invoke(new Action(() => // Thread safe
+			{
+				float ratio_client = ClientSize.Width / ClientSize.Height;
+				float ratio_image = screen.Width / screen.Height;
+				if (ratio_client != ratio_image || force)
+				{
+					ClientSize = new Size(ClientSize.Width, (int)(ClientSize.Width / 1.6));
+				}
+			}));
+		}
+	}
 }
