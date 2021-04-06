@@ -18,10 +18,12 @@ namespace RemoteDesktop
 		[return: MarshalAs(UnmanagedType.Bool)]
 		internal static extern bool SetCursorPos(int x, int y);
 
-		private const int MOUSEEVENTF_LEFTDOWN = 0x02;
-		private const int MOUSEEVENTF_LEFTUP = 0x04;
-		private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
-		private const int MOUSEEVENTF_RIGHTUP = 0x10;
+		private const int LEFTDOWN	 = 0x02,
+						  LEFTUP	 = 0x04,
+						  RIGHTDOWN	 = 0x08,
+						  RIGHTUP	 = 0x10,
+						  MIDDLEDOWN = 0x20,
+						  MIDDLEUP	 = 0x40;
 
 		internal static Rectangle SCREEN_RESOLUTION;
 
@@ -29,8 +31,9 @@ namespace RemoteDesktop
 		{
 			switch (button)
 			{
-				case "left": return (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP);
-				case "right": return (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP);
+				case "left": return (LEFTDOWN, LEFTUP);
+				case "right": return (RIGHTDOWN, RIGHTUP);
+				case "middle": return (MIDDLEDOWN, MIDDLEUP);
 				default: throw new ArgumentException();
 			}
 		}
