@@ -25,10 +25,15 @@ namespace RemoteDesktop
 			(Program.sw = new ServerWindow()).Hide();
 			(Program.cw = new ClientWindow()).Hide();
 		}
-		
+
 		private void ExceptionMsg(Exception e)
 		{
-			MessageBox.Show(e.ToString(), "Unhandled exception because this is terrible code", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			ExceptionMsg(e.ToString());
+		}
+
+		private void ExceptionMsg(string e)
+		{
+			MessageBox.Show(e, "Oeps", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
 
 		private (IPAddress, UInt16?) ValidateIPAndPort(string IP, string Port)
@@ -116,7 +121,7 @@ namespace RemoteDesktop
 						continue;
 					}
 
-					// The best IP is the IP got from DHCP server
+					// The best IP is the IP gotten from the DHCP server
 					if (address.PrefixOrigin != PrefixOrigin.Dhcp)
 					{
 						if (mostSuitableIp == null || !mostSuitableIp.IsDnsEligible)
@@ -168,21 +173,20 @@ namespace RemoteDesktop
 					// Remove <EOF>
 					data = data.Substring(0, data.Length - 5);
 
-
-					Console.WriteLine();
-
 					if (data.Substring(0, 5) == "CLOSE")
 					{
 						Program.sw.stopSharing = true;
 					}
 					else
 					{
+						// TODO
+#if false
 						IOH.HandleEvent(data);
+#endif
 					}
 
 					byte[] msg = Utility.BitmapToByteArr(Utility.TakeScreenShot());
 
-					//Console.WriteLine(outp.Length);
 					handler.Send(msg);
 				}
 
@@ -212,13 +216,13 @@ namespace RemoteDesktop
 
 		private void ClientCode(object obj)
 		{
-			(IPAddress IP, UInt16? Port) address = ((IPAddress, UInt16?)) obj;
+			(IPAddress IP, UInt16? Port) = ((IPAddress, UInt16?)) obj;
 			byte[] bytes = new byte[450000];
 
 			try
 			{
-				IPEndPoint remoteEP = new IPEndPoint(address.IP, (Int32)address.Port);
-				Socket client = new Socket(address.IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+				IPEndPoint remoteEP = new IPEndPoint(IP, (Int32)Port);
+				Socket client = new Socket(IP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 				client.Connect(remoteEP);
 				Console.WriteLine("Connected to remote server");
 
@@ -293,14 +297,14 @@ namespace RemoteDesktop
 						Program.cw.UpdateScreen();
 						received = "200";
 					}
-					catch (Exception e)
+					catch (Exception)
 					{
 						try
 						{
 							received = Encoding.ASCII.GetString(bytes, 0, bytesRec);
 							Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\tReceived from remote server: " + received, "Message");
 						}
-						catch (Exception e2)
+						catch (Exception)
 						{
 							Console.WriteLine("Unknown crap sent by host");
 							received = "500";

@@ -35,7 +35,12 @@ namespace RemoteDesktop
 		{
 			Invoke(new Action(() => // Thread safe
 			{
-				ClientSize = new Size(screen.Width, screen.Height);
+				float ratio_client = ClientSize.Width / ClientSize.Height;
+				float ratio_image = screen.Width / screen.Height;
+				if (ratio_client != ratio_image)
+				{
+					ClientSize = new Size(ClientSize.Width, (int)(ClientSize.Width / 1.6));
+				}
 			}));
 			BackgroundImage = screen;
 		}
