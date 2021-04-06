@@ -54,11 +54,6 @@ namespace RemoteDesktop
 			}
 		}
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-			stopSharing = true;
-		}
-
 		private void ClientWindow_ResizeEnd(object sender, EventArgs e)
 		{
 			UpdateResize(true); // Update regardless of ratio check
@@ -75,6 +70,12 @@ namespace RemoteDesktop
 					ClientSize = new Size(ClientSize.Width, (int)(ClientSize.Width / 1.6));
 				}
 			}));
+		}
+
+		private void ClientWindow_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			stopSharing = true;
+			System.Threading.Thread.Sleep(250); // Assert a fine exit
 		}
 	}
 }
