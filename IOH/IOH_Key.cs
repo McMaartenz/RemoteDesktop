@@ -86,7 +86,7 @@ namespace RemoteDesktop
 
             for (int i = 0; i < inputs.Length; i++)
             {
-                inputs[i].u.ki.dwFlags = (uint)(KEYEVENTF.KeyUp);
+                inputs[i].u.ki.dwFlags = (uint)KEYEVENTF.KeyUp;
             }
 
             SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT))); // Release keys
